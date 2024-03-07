@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -12,9 +13,13 @@ func createNewUser(c *gin.Context) {
 }
 
 func getUserByEmail(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "get user by email",
-	})
+	email := c.Param("email")
+	resp := gin.H{
+		"message": fmt.Sprintf("get user by email: %s", email),
+	}
+
+	// response
+	c.JSON(http.StatusOK, resp)
 }
 
 func getUsers(c *gin.Context) {
