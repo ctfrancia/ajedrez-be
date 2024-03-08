@@ -1,16 +1,16 @@
 package main
 
 import (
+	"ctfrancia/ajedrez-be/pkg/dtos"
 	"fmt"
-	"github.com/ctfrancia/ajedrez-be/pkg/dtos"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func createNewUser(c *gin.Context) {
-	var ucr dtos.CreateUserRequest
+	var cnu dtos.UserCreateRequest
 
-	if err := c.ShouldBindJSON(&ucr); err != nil {
+	if err := c.ShouldBindJSON(&cnu); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
