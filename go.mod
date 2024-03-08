@@ -1,4 +1,4 @@
-module ctfrancia/ajedrez-be
+module github.com/ctfrancia/ajedrez-be
 
 go 1.21.0
 
