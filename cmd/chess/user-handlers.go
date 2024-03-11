@@ -1,10 +1,12 @@
 package main
 
 import (
+	"ctfrancia/ajedrez-be/internal/models"
 	"ctfrancia/ajedrez-be/pkg/dtos"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func createNewUser(c *gin.Context) {
@@ -14,6 +16,10 @@ func createNewUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Println("cnu", cnu)
+
+	txt := models.CreateUser()
+	fmt.Println("txt", txt)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "create new user",
