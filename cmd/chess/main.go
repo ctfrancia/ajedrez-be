@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"flag"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"log/slog"
@@ -27,7 +28,7 @@ const version = "1.0.0"
 
 func main() {
 	var cfg config
-	flag.IntVar(&cfg.port, "port", 4000, "API server port")
+	flag.IntVar(&cfg.port, "port", 8080, "API server port")
 	// Database connection string: postgres://username:password@localhost:5432/database_name
 	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://chess:che55@localhost:5432/chess?sslmode=disable", "PostgreSQL DSN")
 	flag.Parse()
@@ -59,7 +60,8 @@ func main() {
 
 	defer db.Close()
 
-	r.Run(":8080")
+	port := fmt.Sprintf(":%d", cfg.port)
+	r.Run(port)
 }
 
 func openDB(cfg config) (*sql.DB, error) {
