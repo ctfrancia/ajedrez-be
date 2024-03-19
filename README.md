@@ -17,6 +17,25 @@ back-end code for chess website
 ## DB Column Explanations
 - for migrations and seeds, see `migrations/` and `seeds/` directories (brew install golang-migrate)
 
+### `clubs`
+- `id` - primary key
+- `is_active` - boolean to determine if club is active
+- `created_at` - date club was created
+- `updated_at` - date club was last updated
+- `deleted_at` - date club was deleted
+- `name` - club's name
+- `description` - club's description
+- `avatar` - club's profile picture URL
+- `organizer_id` - foreign key to `users` table
+- `email` - club's email
+- `phone` - club's phone number
+- `website` - club's website
+- `country` - club's country of residence (SPAIN, USA, etc.) DEFAULT: SPAIN
+- `province` - club's province of residence (MADRID, BARCELONA, etc.)
+- `city` - club's city of residence (ALCOBENDAS, SANT CUGAT, etc.)
+- `address` - club's address
+- `members` -  foreign keys[] to `users` table
+
 ### `users`
 - `id` - primary key
 - `is_active` - boolean to determine if user is active
@@ -48,10 +67,29 @@ back-end code for chess website
 - `neighborhood` - user's neighborhood of residence (LA MORALEJA, VALLVIDRERA, etc.)
 - `version` - version of this database schema
 
-### `clubs`
+### `tournaments`
 
 ### `games`
-
-### `tournaments`
+- `id` - primary key
+- `is_active` - boolean to determine if game is active
+- `created_at` - date game was created
+- `updated_at` - date game was last updated
+- `deleted_at` - date game was deleted
+- `start_at` - date game was started
+- `end_at` - date game was ended
+- `location` - game's location
+- `fide_valid` - boolean to determine if game is FIDE valid
+- `national_valid` - boolean to determine if game is national valid
+- `regional_valid` - boolean to determine if game is regional valid
+- `organizer_id` - foreign key to `users` table
+- `organizer_email` - organizer's email
+- `organizer_phone` - organizer's phone number
+- `players_attending` - foreign keys[] to `users` table of members that are registered to the website
+- `club_members_price` - price for club members
+- `club_non_members_price` - price for non-club members
+- `qr_code` - URL to QR code for game
+- `description` - game's description
+- `additional_info` - game's additional info
+- `tournament_id` - foreign key to `tournaments` table
 
 ### `club_roles`
