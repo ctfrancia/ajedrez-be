@@ -18,7 +18,7 @@ func createNewUser(c *gin.Context) {
 	}
 	fmt.Println("cnu", cnu)
 
-	txt := models.CreateUser()
+	txt, _ := models.CreateUser()
 	fmt.Println("txt", txt)
 
 	c.JSON(http.StatusOK, gin.H{
