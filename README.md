@@ -15,10 +15,10 @@ back-end code for chess website
 
 
 ## DB Column Explanations
-- for migrations and seeds, see `migrations/` and `seeds/` directories (brew install golang-migrate)
+- for migrations and seeds, see `migrations/` directories (brew install golang-migrate)
 
 ### `clubs`
-- `id` - primary key
+- `club_id` - primary key
 - `is_active` - boolean to determine if club is active
 - `created_at` - date club was created
 - `updated_at` - date club was last updated
@@ -37,7 +37,7 @@ back-end code for chess website
 - `members` -  foreign keys[] to `users` table
 
 ### `users`
-- `id` - primary key
+- `user_id` - primary key
 - `is_active` - boolean to determine if user is active
 - `created_at` - date user was created
 - `updated_at` - date user was last updated
@@ -65,12 +65,23 @@ back-end code for chess website
 - `province` - user's province of residence (MADRID, BARCELONA, etc.)
 - `city` - user's city of residence (ALCOBENDAS, SANT CUGAT, etc.)
 - `neighborhood` - user's neighborhood of residence (LA MORALEJA, VALLVIDRERA, etc.)
-- `version` - version of this database schema
 
 ### `tournaments`
+- `tournament_id` - primary key
+- `is_active` - boolean to determine if tournament is active
+- `created_at` - date tournament was created
+- `updated_at` - date tournament was last updated
+- `deleted_at` - date tournament was deleted
+- `start_at` - date tournament was started
+- `end_at` - date tournament was ended
+- `location` - tournament's location
+- `fide_valid` - boolean to determine if tournament is FIDE valid
+- `national_valid` - boolean to determine if tournament is national valid
+- `regional_valid` - boolean to determine if tournament is regional valid
+- `organizer_id` - foreign key to `users` table
 
 ### `games`
-- `id` - primary key
+- `game_id` - primary key
 - `is_active` - boolean to determine if game is active
 - `created_at` - date game was created
 - `updated_at` - date game was last updated

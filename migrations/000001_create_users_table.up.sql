@@ -25,5 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
     province text,
     city text,
     neighborhood text,
-    version integer NOT NULL DEFAULT 1
+    CONSTRAINT fk_club_id
+        FOREIGN KEY (club_id)
+            REFERENCES clubs(club_id)
 );
