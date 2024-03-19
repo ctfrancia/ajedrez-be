@@ -8,8 +8,9 @@ help:
 	@echo "make run-dev <...FLAGS> - Run the application in development mode"
 	@echo "		-db-dsn=<connection-string> - Set the database connection string (optional)"
 
-run-dev:
+run-dev: #$(db-dsn) $(port)
 	# db-dsn = $(if $(db-dsn),$(db-dsn),$(""))
+	# port = $(if $(port),$(port),"")
 	@echo "Running in development mode"
 	if [ -z "$(db-dsn)" ]; then \
 		echo "DB DSN is not set, using default local connection string"; \
