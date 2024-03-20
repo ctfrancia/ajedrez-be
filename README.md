@@ -17,7 +17,11 @@ back-end code for chess website
 ## DB Column Explanations
 - for migrations and seeds, see `migrations/` directories (brew install golang-migrate)
 
-### `clubs`
+### clubs
+#### Description
+TODO
+
+### Definitions and descriptions
 - `club_id` - primary key
 - `is_active` - boolean to determine if club is active
 - `created_at` - date club was created
@@ -36,7 +40,11 @@ back-end code for chess website
 - `address` - club's address
 - `members` -  foreign keys[] to `users` table
 
-### `users`
+### users
+#### Description
+TODO
+
+### Definitions and descriptions
 - `user_id` - primary key
 - `is_active` - boolean to determine if user is active
 - `is_verified` - boolean to determine if user is verified
@@ -72,7 +80,7 @@ back-end code for chess website
 - `city` - user's city of residence (ALCOBENDAS, SANT CUGAT, etc.)
 - `neighborhood` - user's neighborhood of residence (LA MORALEJA, VALLVIDRERA, etc.)
 
-### `tournaments`
+### tournaments
 #### Description
 Tournaments represent the parent of the `games` table and will define the rules
 and regulations of the subsequent games of the child games.
@@ -126,3 +134,8 @@ of 9 rounds. Those 9 rounds can be considered 9 games and will thus be stored in
 - `tournament_id` - foreign key to `tournaments` table
 
 ### `club_roles`
+#### Description
+TODO
+
+### Definitions and descriptions
+TODO
