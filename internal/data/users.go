@@ -5,6 +5,27 @@ import (
 	"time"
 )
 
+type User struct {
+	ID           int64     `json:"id"`
+	Email        string    `json:"email"`
+	Password     string    `json:"password"`
+	Username     string    `json:"username"`
+	FirstName    string    `json:"first_name"`
+	LastName     string    `json:"last_name"`
+	DateOfBirth  time.Time `json:"date_of_birth"`
+	Avatar       string    `json:"avatar"`
+	Club         string    `json:"club"`
+	Sex          string    `json:"sex"`
+	AboutMe      string    `json:"about_me"`
+	ELOFide      int       `json:"elo_fide"`
+	ELONational  int       `json:"elo_national"`
+	ELORegional  int       `json:"elo_regional"`
+	Country      string    `json:"country"`
+	Province     string    `json:"province"`
+	City         string    `json:"city"`
+	Neighborhood string    `json:"neighborhood"`
+}
+
 // Define a UserModel struct type which wraps a sql.DB connection pool.
 type UserModel struct {
 	DB *sql.DB
