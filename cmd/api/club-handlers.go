@@ -32,5 +32,5 @@ func (app *application) createNewClub(c *gin.Context) {
 		"message": "success",
 		"data":    cnc,
 	}
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusCreated, resp)
 }
