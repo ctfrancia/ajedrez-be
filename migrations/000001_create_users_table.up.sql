@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     username text NOT NULL UNIQUE,
     email text NOT NULL,
     password text NOT NULL,
+    password_reset_token text,
     avatar text,
     club_id bigint,
     club_role_id bigint, -- create fk
@@ -30,5 +31,5 @@ CREATE TABLE IF NOT EXISTS users (
     country text NOT NULL DEFAULT 'SPAIN',
     province text NOT NULL DEFAULT '',
     city text NOT NULL DEFAULT '',
-    neighborhood text NOT NULL DEFAULT '',
+    neighborhood text NOT NULL DEFAULT ''
 );
