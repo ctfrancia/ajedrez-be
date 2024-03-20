@@ -19,14 +19,15 @@ func (app *application) createNewClub(c *gin.Context) {
 
 	err := app.models.Clubs.Insert(&cnc)
 	if err != nil {
-		fmt.Println("error", err)
-		if err.Error() == "pq: duplicate key value violates unique constraint \"clubs_code_key\"" {
+		if err.Error() == "pq: duplicate key value violates unique constraint \"club_name_unique_check\"" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Club already exists"})
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Club already exists"})
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	resp := gin.H{
 		"message": "success",
 		"data":    cnc,
