@@ -4,11 +4,12 @@ import (
 	"ctfrancia/ajedrez-be/internal/data"
 
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func createNewClub(c *gin.Context) {
+func (app *application) createNewClub(c *gin.Context) {
 	var cnc data.Club
 	if err := c.ShouldBindJSON(&cnc); err != nil {
 		fmt.Println("error", err)
@@ -16,9 +17,19 @@ func createNewClub(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("CREATE NEW CLUB", cnc)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "create new user",
-	})
-
+	err := app.models.Clubs.Insert(&cnc)
+	if err != nil {
+		fmt.Println("error", err)
+		if err.Error() == "pq: duplicate key value violates unique constraint \"clubs_code_key\"" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Club already exists"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Club already exists"})
+		return
+	}
+	resp := gin.H{
+		"message": "success",
+		"data":    cnc,
+	}
+	c.JSON(http.StatusOK, resp)
 }

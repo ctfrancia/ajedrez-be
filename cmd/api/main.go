@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	"log/slog"
 	"os"
 	"time"
 )
@@ -25,7 +24,6 @@ type config struct {
 }
 type application struct {
 	config config
-	logger *slog.Logger
 	models data.Models
 }
 
@@ -40,7 +38,18 @@ func main() {
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
 	flag.Parse()
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	// logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	db, err := openDB(cfg)
+	if err != nil {
+		// logger.Error("cannot connect to database", "error", err)
+		os.Exit(1)
+	}
+
+	defer db.Close()
+	app := &application{
+		config: cfg,
+		models: data.NewModels(db),
+	}
 
 	r := gin.Default()
 	v1U := r.Group("/v1/user")
@@ -57,15 +66,7 @@ func main() {
 	v1T.POST("/create", createNewTournament)
 
 	// Club routes
-	v1C.POST("/create", createNewClub)
-
-	db, err := openDB(cfg)
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
-
-	defer db.Close()
+	v1C.POST("/create", app.createNewClub)
 
 	port := fmt.Sprintf(":%d", cfg.port)
 	r.Run(port)

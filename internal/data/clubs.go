@@ -15,7 +15,7 @@ type Club struct {
 	Club         string `json:"club" binding:"required" db:"name"`
 	Address      string `json:"address" db:"address"`
 	Observations string `json:"observations" db:"observations"`
-	City         string `json:"city" binding:"required" db:"city"`
+	City         string `json:"city" db:"city"`
 }
 
 // Define a ClubModel struct type which wraps a sql.DB connection pool.
@@ -33,7 +33,7 @@ func (m ClubModel) Insert(club *Club) error {
             city
         )
         VALUES ($1, $2, $3, $4, $5)
-        RETURNING club_id, code, created_at, version`
+        RETURNING club_id, code, created_at`
 	args := []interface{}{
 		club.Code,
 		club.Club,
@@ -41,5 +41,5 @@ func (m ClubModel) Insert(club *Club) error {
 		club.Observations,
 		club.City,
 	}
-	return m.DB.QueryRow(query, args...).Scan(&club.ClubID, &club.CreatedAt)
+	return m.DB.QueryRow(query, args...).Scan(&club.ClubID, &club.Code, &club.CreatedAt)
 }
