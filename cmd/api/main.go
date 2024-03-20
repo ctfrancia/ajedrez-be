@@ -64,21 +64,6 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
-	/*
-		_ = &application{
-			config: cfg,
-			logger: logger,
-			models: data.NewModels(db),
-		}
-		srv := &http.Server{
-			Addr:         fmt.Sprintf(":%d", cfg.port),
-			Handler:      r.Routes(), // app.routes(),
-			IdleTimeout:  time.Minute,
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 10 * time.Second,
-			ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
-		}
-	*/
 
 	defer db.Close()
 
