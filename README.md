@@ -39,6 +39,9 @@ back-end code for chess website
 ### `users`
 - `user_id` - primary key
 - `is_active` - boolean to determine if user is active
+- `is_verified` - boolean to determine if user is verified
+- `is_admin` - boolean to determine if user is admin
+- `club_admin` - foreign key to `clubs` table (what club the user is admin of)
 - `created_at` - date user was created
 - `updated_at` - date user was last updated
 - `deleted_at` - date user was deleted
@@ -58,6 +61,9 @@ back-end code for chess website
 - `elo_fide` - user's FIDE rating
 - `elo_national` - user's national rating
 - `elo_regional` - user's regional rating
+- `is_arbiter` - boolean to determine if user is an arbiter
+- `is_coach` - boolean to determine if user is a coach
+- `title` - user's title (GM, IM, FM, etc.)
 - `chess_com_username` - user's chess.com username
 - `lichess_username` - user's lichess username
 - `chess24_username` - user's chess24 username
@@ -67,6 +73,11 @@ back-end code for chess website
 - `neighborhood` - user's neighborhood of residence (LA MORALEJA, VALLVIDRERA, etc.)
 
 ### `tournaments`
+#### Description
+Tournaments represent the parent of the `games` table and will define the rules
+and regulations of the subsequent games of the child games.
+
+#### Definitions and descriptions
 - `tournament_id` - primary key
 - `is_active` - boolean to determine if tournament is active
 - `created_at` - date tournament was created
@@ -74,6 +85,11 @@ back-end code for chess website
 - `deleted_at` - date tournament was deleted
 - `start_at` - date tournament was started
 - `end_at` - date tournament was ended
+- `no_of_rounds` - number of rounds in tournament
+- `time_control` - time control of tournament (Standard, Rapid, Blitz)
+- `clock_type` - clock type of tournament (Analog, Digital)
+- `clock_rythm` - clock increment of tournament(50+10, 25+5, etc.)
+- `arbiters` - foreign keys[] to `users` table
 - `location` - tournament's location
 - `fide_valid` - boolean to determine if tournament is FIDE valid
 - `national_valid` - boolean to determine if tournament is national valid
@@ -81,6 +97,12 @@ back-end code for chess website
 - `organizer_id` - foreign key to `users` table
 
 ### `games`
+#### Description
+A game is also considered a round or a match. For example a tournament can be composed
+of 9 rounds. Those 9 rounds can be considered 9 games and will thus be stored in the
+`games` table.
+
+### Definitions and descriptions
 - `game_id` - primary key
 - `is_active` - boolean to determine if game is active
 - `created_at` - date game was created

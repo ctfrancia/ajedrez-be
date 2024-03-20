@@ -8,6 +8,11 @@ CREATE TABLE IF NOT EXISTS tournaments (
     description text,
     start_date timestamp(0) with time zone NOT NULL,
     end_date timestamp(0) with time zone NOT NULL,
+    no_of_rounds integer NOT NULL DEFAULT 5,
+    time_control text NOT NULL,
+    clock_type text NOT NULL,
+    clock_rythm text NOT NULL,
+    aribiters text[] NOT NULL DEFAULT '{}',
     location text,
     organizer_id bigint,
 );

@@ -1,6 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
-    id bigserial PRIMARY KEY,  
+    user_id bigserial PRIMARY KEY,
     is_active boolean NOT NULL DEFAULT TRUE,
+    is_verified boolean NOT NULL DEFAULT FALSE,
+    is_admin boolean NOT NULL DEFAULT FALSE,
+    club_admin bigint,
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     deleted_at timestamp(0) with time zone,
@@ -18,13 +21,16 @@ CREATE TABLE IF NOT EXISTS users (
     elo_fide integer NOT NULL DEFAULT 1200,
     elo_national integer NOT NULL DEFAULT 1200,
     elo_regional integer NOT NULL DEFAULT 1200,
-    chess_com_username text,
-    lichess_username text,
-    chess24_username text,
+    is_arbiter boolean NOT NULL DEFAULT FALSE,
+    is_coach boolean NOT NULL DEFAULT FALSE,
+    price_per_hour integer NOT NULL DEFAULT 0,
+    chess_com_username text NOT NULL DEFAULT '',
+    lichess_username text NOT NULL DEFAULT '',
+    chess24_username text NOT NULL DEFAULT '',
     country text NOT NULL DEFAULT 'SPAIN',
-    province text,
-    city text,
-    neighborhood text,
+    province text NOT NULL DEFAULT '',
+    city text NOT NULL DEFAULT '',
+    neighborhood text NOT NULL DEFAULT '',
     CONSTRAINT fk_club_id
         FOREIGN KEY (club_id)
             REFERENCES clubs(club_id)
