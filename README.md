@@ -39,6 +39,27 @@ TODO
 - `city` - club's city of residence (ALCOBENDAS, SANT CUGAT, etc.)
 - `address` - club's address
 - `members` -  foreign keys[] to `users` table
+```sql
+CREATE TABLE IF NOT EXISTS clubs (
+    club_id bigserial PRIMARY KEY,  
+    is_active boolean NOT NULL DEFAULT TRUE,
+    created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
+    updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
+    deleted_at timestamp(0) with time zone,
+    name text NOT NULL,
+    description text,
+    avatar text,
+    organizer_id bigint,
+    email text NOT NULL,
+    phone text,
+    website text,
+    country text NOT NULL DEFAULT 'SPAIN',
+    province text,
+    city text,
+    address text,
+    members integer[] NOT NULL DEFAULT '{}',
+);
+```
 
 ### users
 #### Description
@@ -104,6 +125,26 @@ and regulations of the subsequent games of the child games.
 - `regional_valid` - boolean to determine if tournament is regional valid
 - `organizer_id` - foreign key to `users` table
 
+```sql
+CREATE TABLE IF NOT EXISTS tournaments (
+    tournament_id bigserial PRIMARY KEY,  
+    is_active boolean NOT NULL DEFAULT TRUE,
+    created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
+    updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
+    deleted_at timestamp(0) with time zone,
+    name text NOT NULL,
+    description text,
+    start_date timestamp(0) with time zone NOT NULL,
+    end_date timestamp(0) with time zone NOT NULL,
+    no_of_rounds integer NOT NULL DEFAULT 0,
+    time_control text NOT NULL, -- create fk to time_control table
+    clock_type text NOT NULL,
+    clock_rhythm text NOT NULL,
+    aribiters bigint[] NOT NULL DEFAULT '{}', -- create fk
+    location text,
+    organizer_id bigint,
+);
+```
 ### `games`
 #### Description
 A game is also considered a round or a match. For example a tournament can be composed
@@ -132,6 +173,32 @@ of 9 rounds. Those 9 rounds can be considered 9 games and will thus be stored in
 - `description` - game's description
 - `additional_info` - game's additional info
 - `tournament_id` - foreign key to `tournaments` table
+
+```sql
+CREATE TABLE IF NOT EXISTS games (
+    game_id bigserial PRIMARY KEY,  
+    is_active boolean NOT NULL DEFAULT TRUE,
+    created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
+    updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
+    deleted_at timestamp(0) with time zone,
+    start_at timestamp(0) with time zone NOT NULL,
+    end_at timestamp(0) with time zone,
+    location text,
+    fide_valid boolean NOT NULL DEFAULT FALSE,
+    national_valid boolean NOT NULL DEFAULT FALSE,
+    regional_valid boolean NOT NULL DEFAULT FALSE,
+    organizer_id bigint,
+    organizer_email text NOT NULL,
+    organizer_phone text NOT NULL,
+    players_attending integer[] NOT NULL DEFAULT '{}',
+    club_member_price integer NOT NULL DEFAULT 0,
+    club_non_member_price integer NOT NULL DEFAULT 0,
+    qr_code text,
+    description text,
+    additional_info text,
+    tournament_id bigint,
+);
+```
 
 ### `club_roles`
 #### Description
