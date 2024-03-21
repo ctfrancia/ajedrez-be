@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
     user_id bigserial PRIMARY KEY,
-    is_active boolean NOT NULL DEFAULT TRUE,
+    is_active boolean NOT NULL DEFAULT FALSE,
     is_verified boolean NOT NULL DEFAULT FALSE,
     is_admin_of_club boolean NOT NULL DEFAULT FALSE,
-    club_admin_of bigint, -- create fk
+    club_admin_of bigint, -- fk to club
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     deleted_at timestamp(0) with time zone,
@@ -11,13 +11,13 @@ CREATE TABLE IF NOT EXISTS users (
     last_name text NOT NULL,
     dob date,
     sex text,
-    username text NOT NULL UNIQUE,
-    email text NOT NULL,
-    password text NOT NULL,
+    username text,
+    email text,
+    password text,
     password_reset_token text,
     avatar text,
-    club_id bigint,
-    club_role_id bigint, -- create fk
+    club_id bigint, -- fk to club membership
+    club_role_id bigint, -- fk to club_roles
     about_me text,
     elo_fide integer NOT NULL DEFAULT 1200,
     elo_national integer NOT NULL DEFAULT 1200,

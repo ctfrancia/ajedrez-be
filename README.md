@@ -41,23 +41,17 @@ TODO
 - `members` -  foreign keys[] to `users` table
 ```sql
 CREATE TABLE IF NOT EXISTS clubs (
-    club_id bigserial PRIMARY KEY,  
+    club_id bigserial PRIMARY KEY,
     is_active boolean NOT NULL DEFAULT TRUE,
+    is_verified boolean NOT NULL DEFAULT FALSE,
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     deleted_at timestamp(0) with time zone,
+    code text NOT NULL,
     name text NOT NULL,
-    description text,
-    avatar text,
-    organizer_id bigint,
-    email text NOT NULL,
-    phone text,
-    website text,
-    country text NOT NULL DEFAULT 'SPAIN',
-    province text,
-    city text,
-    address text,
-    members integer[] NOT NULL DEFAULT '{}',
+    address text NOT NULL,
+    observations text,
+    city text NOT NULL
 );
 ```
 
@@ -100,6 +94,43 @@ TODO
 - `province` - user's province of residence (MADRID, BARCELONA, etc.)
 - `city` - user's city of residence (ALCOBENDAS, SANT CUGAT, etc.)
 - `neighborhood` - user's neighborhood of residence (LA MORALEJA, VALLVIDRERA, etc.)
+```sql
+CREATE TABLE IF NOT EXISTS users (
+    user_id bigserial PRIMARY KEY,
+    is_active boolean NOT NULL DEFAULT FALSE,
+    is_verified boolean NOT NULL DEFAULT FALSE,
+    is_admin_of_club boolean NOT NULL DEFAULT FALSE,
+    club_admin_of bigint, -- create fk
+    created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
+    updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
+    deleted_at timestamp(0) with time zone,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    dob date,
+    sex text,
+    username text,
+    email text,
+    password text,
+    password_reset_token text,
+    avatar text,
+    club_id bigint,
+    club_role_id bigint, -- create fk
+    about_me text,
+    elo_fide integer NOT NULL DEFAULT 1200,
+    elo_national integer NOT NULL DEFAULT 1200,
+    elo_regional integer NOT NULL DEFAULT 1200,
+    is_arbiter boolean NOT NULL DEFAULT FALSE,
+    is_coach boolean NOT NULL DEFAULT FALSE,
+    price_per_hour integer NOT NULL DEFAULT 0,
+    chess_com_username text NOT NULL DEFAULT '',
+    lichess_username text NOT NULL DEFAULT '',
+    chess24_username text NOT NULL DEFAULT '',
+    country text NOT NULL DEFAULT 'SPAIN',
+    province text NOT NULL DEFAULT '',
+    city text NOT NULL DEFAULT '',
+    neighborhood text NOT NULL DEFAULT ''
+);
+```
 
 ### tournaments
 #### Description
