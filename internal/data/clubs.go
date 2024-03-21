@@ -2,6 +2,7 @@ package data
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 type Club struct {
@@ -42,4 +43,29 @@ func (m ClubModel) Insert(club *Club) error {
 		club.City,
 	}
 	return m.DB.QueryRow(query, args...).Scan(&club.ClubID, &club.Code, &club.CreatedAt)
+}
+
+func (m ClubModel) GetByName(name string) (*Club, error) {
+	query := `
+        SELECT * FROM clubs
+        WHERE name = $1`
+	fmt.Println(query)
+	var club Club
+	err := m.DB.QueryRow(query, name).Scan(
+		&club.ClubID,
+		&club.IsActive,
+		&club.CreatedAt,
+		&club.IsVerified,
+		&club.UpdatedAt,
+		&club.DeletedAt,
+		&club.Code,
+		&club.Club,
+		&club.Address,
+		&club.Observations,
+		&club.City,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &club, nil
 }

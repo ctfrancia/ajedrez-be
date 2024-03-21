@@ -67,6 +67,7 @@ func main() {
 
 	// Club routes
 	v1C.POST("/create", app.createNewClub)
+	v1C.GET("/by-name/:name", app.getClubByName)
 
 	port := fmt.Sprintf(":%d", cfg.port)
 	r.Run(port)

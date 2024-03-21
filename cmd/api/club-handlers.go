@@ -2,6 +2,7 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
+	"fmt"
 
 	"net/http"
 
@@ -31,4 +32,20 @@ func (app *application) createNewClub(c *gin.Context) {
 		"data":    cnc,
 	}
 	c.JSON(http.StatusCreated, resp)
+}
+
+func (app *application) getClubByName(c *gin.Context) {
+	name := c.Param("name")
+	fmt.Println("name", name)
+	club, err := app.models.Clubs.GetByName(name)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Club not found"})
+		return
+	}
+
+	resp := gin.H{
+		"message": "success",
+		"data":    club,
+	}
+	c.JSON(http.StatusOK, resp)
 }
