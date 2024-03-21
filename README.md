@@ -20,6 +20,27 @@ back-end code for chess website
 ### clubs
 #### Description
 TODO
+```
+    Column    |            Type             | Collation | Nullable |                Default
+--------------+-----------------------------+-----------+----------+----------------------------------------
+ club_id      | bigint                      |           | not null | nextval('clubs_club_id_seq'::regclass)
+ is_active    | boolean                     |           | not null | true
+ is_verified  | boolean                     |           | not null | false
+ created_at   | timestamp(0) with time zone |           | not null | now()
+ updated_at   | timestamp(0) with time zone |           | not null | now()
+ deleted_at   | timestamp(0) with time zone |           |          |
+ code         | text                        |           | not null |
+ name         | text                        |           | not null |
+ address      | text                        |           | not null |
+ observations | text                        |           |          |
+ city         | text                        |           | not null |
+ country      | text                        |           | not null | 'Spain'::text
+Indexes:
+    "clubs_pkey" PRIMARY KEY, btree (club_id)
+Referenced by:
+    TABLE "users" CONSTRAINT "fk_admin_of" FOREIGN KEY (club_admin_of) REFERENCES clubs(club_id) ON DELETE CASCADE
+    TABLE "users" CONSTRAINT "fk_user_club" FOREIGN KEY (club_id) REFERENCES clubs(club_id) ON DELETE CASCADE
+```
 
 ### Definitions and descriptions
 - `club_id` - primary key
@@ -41,7 +62,7 @@ TODO
 - `members` -  foreign keys[] to `users` table
 ```sql
 CREATE TABLE IF NOT EXISTS clubs (
-    club_id bigserial PRIMARY KEY,
+    id bigserial PRIMARY KEY,
     is_active boolean NOT NULL DEFAULT TRUE,
     is_verified boolean NOT NULL DEFAULT FALSE,
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
@@ -57,8 +78,55 @@ CREATE TABLE IF NOT EXISTS clubs (
 
 ### users
 #### Description
-TODO
-
+```
+                                                Table "public.users"
+        Column         |            Type             | Collation | Nullable |                Default
+-----------------------+-----------------------------+-----------+----------+----------------------------------------
+ user_id               | bigint                      |           | not null | nextval('users_user_id_seq'::regclass)
+ is_active             | boolean                     |           | not null | false
+ is_verified           | boolean                     |           | not null | false
+ is_admin_of_club      | boolean                     |           | not null | false
+ club_admin_of         | bigint                      |           |          |
+ created_at            | timestamp(0) with time zone |           | not null | now()
+ updated_at            | timestamp(0) with time zone |           | not null | now()
+ deleted_at            | timestamp(0) with time zone |           |          |
+ first_name            | text                        |           | not null |
+ last_name             | text                        |           | not null |
+ dob                   | date                        |           |          |
+ sex                   | text                        |           |          |
+ username              | text                        |           |          |
+ email                 | text                        |           |          |
+ password              | text                        |           |          |
+ password_reset_token  | text                        |           |          |
+ avatar                | text                        |           |          |
+ club_id               | bigint                      |           |          |
+ club_role_id          | bigint                      |           |          |
+ about_me              | text                        |           |          |
+ is_arbiter            | boolean                     |           | not null | false
+ is_coach              | boolean                     |           | not null | false
+ price_per_hour        | integer                     |           | not null | 0
+ chess_com_username    | text                        |           | not null | ''::text
+ lichess_username      | text                        |           | not null | ''::text
+ chess24_username      | text                        |           | not null | ''::text
+ country               | text                        |           | not null | 'SPAIN'::text
+ province              | text                        |           | not null | ''::text
+ city                  | text                        |           | not null | ''::text
+ neighborhood          | text                        |           | not null | ''::text
+ elo_fide_standard     | integer                     |           |          |
+ elo_fide_rapid        | integer                     |           |          |
+ elo_national_standard | integer                     |           |          |
+ elo_national_rapid    | integer                     |           |          |
+ elo_regional_standard | integer                     |           |          |
+ club_user_code        | text                        |           |          |
+ chess_age_category    | text                        |           |          |
+ elo_regional_rapid    | integer                     |           |          |
+ Indexes:
+    "users_pkey" PRIMARY KEY, btree (user_id)
+    "users_club_user_code_unique" UNIQUE CONSTRAINT, btree (club_user_code)
+Foreign-key constraints:
+    "fk_admin_of" FOREIGN KEY (club_admin_of) REFERENCES clubs(club_id) ON DELETE CASCADE
+    "fk_user_club" FOREIGN KEY (club_id) REFERENCES clubs(club_id) ON DELETE CASCADE
+```
 ### Definitions and descriptions
 - `user_id` - primary key
 - `is_active` - boolean to determine if user is active
@@ -81,9 +149,6 @@ TODO
 - `club_id` - foreign key to `clubs` table
 - `club_role_id` - foreign key to `club_roles` table
 - `about_me` - user's personal bio
-- `elo_fide` - user's FIDE rating
-- `elo_national` - user's national rating
-- `elo_regional` - user's regional rating
 - `is_arbiter` - boolean to determine if user is an arbiter
 - `is_coach` - boolean to determine if user is a coach
 - `title` - user's title (GM, IM, FM, etc.)
@@ -94,6 +159,12 @@ TODO
 - `province` - user's province of residence (MADRID, BARCELONA, etc.)
 - `city` - user's city of residence (ALCOBENDAS, SANT CUGAT, etc.)
 - `neighborhood` - user's neighborhood of residence (LA MORALEJA, VALLVIDRERA, etc.)
+- `elo_fide_standard` - user's FIDE standard rating
+- `elo_fide_rapid` - user's FIDE rapid rating
+- `elo_national_standard` - user's national standard rating
+- `elo_national_rapid` - user's national rapid rating
+- `elo_regional_standard` - user's regional standard rating
+- `elo_regional_rapid` - user's regional rapid rating
 ```sql
 CREATE TABLE IF NOT EXISTS users (
     user_id bigserial PRIMARY KEY,
@@ -131,6 +202,10 @@ CREATE TABLE IF NOT EXISTS users (
     neighborhood text NOT NULL DEFAULT ''
 );
 ```
+
+### notes
+In order for the person to be able to have an active account, they need to sign up
+for the website.
 
 ### tournaments
 #### Description
