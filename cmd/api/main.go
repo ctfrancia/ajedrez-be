@@ -57,7 +57,7 @@ func main() {
 	v1C := r.Group("/v1/club")
 
 	// User routes
-	v1U.POST("/create", createNewUser)
+	v1U.POST("/create", app.createNewUser)
 	v1U.GET("/:email", getUserByEmail)
 	v1U.GET("/all", getUsers)
 	v1U.PUT("/update/:email", updateUser)

@@ -3,7 +3,6 @@ package main
 import (
 	"ctfrancia/ajedrez-be/internal/data"
 
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +11,6 @@ import (
 func (app *application) createNewClub(c *gin.Context) {
 	var cnc data.Club
 	if err := c.ShouldBindJSON(&cnc); err != nil {
-		fmt.Println("error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

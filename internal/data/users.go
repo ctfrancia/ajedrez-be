@@ -1,33 +1,36 @@
 package data
 
 import (
-	"database/sql" // New import
+	"database/sql"
 	"time"
 )
 
 type User struct {
-	ID           int64     `json:"id" db:"user_id"`
-	CreatedAt    time.Time `json:"created_at" db:"created_at"`
-	Email        string    `json:"email" binding:"required" db:"email"`
-	Password     string    `json:"password" binding:"required" db:"password"`
-	Username     string    `json:"username" binding:"required" db:"username"`
-	FirstName    string    `json:"first_name" binding:"required" db:"first_name"`
-	LastName     string    `json:"last_name" binding:"required" db:"last_name"`
-	DateOfBirth  time.Time `json:"date_of_birth" binding:"required" db:"dob"`
-	Avatar       string    `json:"avatar" binding:"required" db:"avatar"`
-	Club         string    `json:"club" binding:"required" db:"club"`
-	Sex          string    `json:"sex" binding:"required" db:"sex"`
-	AboutMe      string    `json:"about_me" binding:"required" db:"about_me"`
-	ELOFide      int       `json:"elo_fide" db:"elo_fide"`
-	ELONational  int       `json:"elo_national" db:"elo_national"`
-	ELORegional  int       `json:"elo_regional" db:"elo_regional"`
-	Country      string    `json:"country" binding:"required" db:"country"`
-	Province     string    `json:"province" binding:"required" db:"province"`
-	City         string    `json:"city" db:"city"`
-	Neighborhood string    `json:"neighborhood" db:"neighborhood"`
+	ID                  int64     `json:"id" db:"user_id"`
+	CreatedAt           time.Time `json:"created_at" db:"created_at"`
+	Email               string    `json:"email" db:"email"`
+	Password            string    `json:"password" db:"password"`
+	Username            string    `json:"username" db:"username"`
+	FirstName           string    `json:"first_name" binding:"required" db:"first_name"`
+	LastName            string    `json:"last_name" binding:"required" db:"last_name"`
+	DateOfBirth         time.Time `json:"date_of_birth" db:"dob"`
+	Avatar              string    `json:"avatar" db:"avatar"`
+	ClubID              int       `json:"club_id" db:"club_id"`
+	Sex                 string    `json:"sex" db:"sex"`
+	AboutMe             string    `json:"about_me" db:"about_me"`
+	Country             string    `json:"country" binding:"required" db:"country"`
+	Province            string    `json:"province" db:"province"`
+	City                string    `json:"city" db:"city"`
+	Neighborhood        string    `json:"neighborhood" db:"neighborhood"`
+	ClubUserID          string    `json:"club_user_code" db:"club_user_code"`
+	ChessAgeCategory    string    `json:"chess_age_category" db:"chess_age_category"`
+	ELOFideStandard     int       `json:"elo_fide_standard" db:"elo_fide_standard"`
+	ELOFideRapid        int       `json:"elo_fide_rapid" db:"elo_fide_rapid"`
+	ELONationalStandard int       `json:"elo_national_standard" db:"elo_national_standard"`
+	ELONationalRapid    int       `json:"elo_national_rapid" db:"elo_national_rapid"`
+	ELORegionalStandard int       `json:"elo_regional_standard" db:"elo_regional_standard"`
+	ELORegionalRapid    int       `json:"elo_regional_rapid" db:"elo_regional_rapid"`
 }
-
-// Define a UserModel struct type which wraps a sql.DB connection pool.
 type UserModel struct {
 	DB *sql.DB
 }
@@ -41,21 +44,25 @@ func (m UserModel) Insert(user *User) error {
             username,
             first_name,
             last_name,
-            dob,
             avatar,
-            club,
+            club_id,
             sex,
             about_me,
-            elo_fide,
-            elo_national,
-            elo_regional,
             country,
             province,
             city,
-            neighborhood
+            neighborhood,
+            club_user_code,
+            chess_age_category,
+            elo_fide_standard,
+            elo_fide_rapid,
+            elo_national_standard,
+            elo_national_rapid,
+            elo_regional_standard,
+            elo_regional_rapid
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-        RETURNING id, created_at`
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+        RETURNING user_id, created_at`
 
 	args := []any{
 		user.Email,
@@ -63,33 +70,22 @@ func (m UserModel) Insert(user *User) error {
 		user.Username,
 		user.FirstName,
 		user.LastName,
-		user.DateOfBirth,
 		user.Avatar,
-		user.Club,
+		user.ClubID,
 		user.Sex,
 		user.AboutMe,
-		user.ELOFide,
-		user.ELONational,
-		user.ELORegional,
 		user.Country,
 		user.Province,
 		user.City,
 		user.Neighborhood,
+		user.ClubUserID,
+		user.ChessAgeCategory,
+		user.ELOFideStandard,
+		user.ELOFideRapid,
+		user.ELONationalStandard,
+		user.ELONationalRapid,
+		user.ELORegionalStandard,
+		user.ELORegionalRapid,
 	}
 	return m.DB.QueryRow(query, args...).Scan(&user.ID, &user.CreatedAt)
-}
-
-// Add a placeholder method for fetching a specific record from the users table.
-func (m UserModel) Get(id int64) (*User, error) {
-	return nil, nil
-}
-
-// Add a placeholder method for updating a specific record in the users table.
-func (m UserModel) Update(user *User) error {
-	return nil
-}
-
-// Add a placeholder method for deleting a specific record from the users table.
-func (m UserModel) Delete(id int64) error {
-	return nil
 }

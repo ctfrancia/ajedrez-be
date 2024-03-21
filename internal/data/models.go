@@ -19,7 +19,7 @@ type Models struct {
 }
 
 // For ease of use, we also add a New() method which returns a Models struct containing
-// the initialized UserModel.
+// the initialized models.
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Users: UserModel{DB: db},
