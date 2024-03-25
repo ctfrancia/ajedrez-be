@@ -8,6 +8,7 @@ import (
 type User struct {
 	ID                  int64     `json:"id" db:"user_id"`
 	CreatedAt           time.Time `json:"created_at" db:"created_at"`
+	DeletedAt           time.Time `json:"deleted_at" db:"deleted_at"`
 	Email               string    `json:"email" db:"email"`
 	Password            string    `json:"password" db:"password"`
 	Username            string    `json:"username" db:"username"`
@@ -18,7 +19,7 @@ type User struct {
 	ClubID              int       `json:"club_id" db:"club_id"`
 	Sex                 string    `json:"sex" db:"sex"`
 	AboutMe             string    `json:"about_me" db:"about_me"`
-	Country             string    `json:"country" binding:"required" db:"country"`
+	Country             string    `json:"country" db:"country"`
 	Province            string    `json:"province" db:"province"`
 	City                string    `json:"city" db:"city"`
 	Neighborhood        string    `json:"neighborhood" db:"neighborhood"`
@@ -35,7 +36,6 @@ type UserModel struct {
 	DB *sql.DB
 }
 
-// Add a placeholder method for inserting a new record in the users table.
 func (m UserModel) Insert(user *User) error {
 	query := `
         INSERT INTO users (
@@ -88,4 +88,38 @@ func (m UserModel) Insert(user *User) error {
 		user.ELORegionalRapid,
 	}
 	return m.DB.QueryRow(query, args...).Scan(&user.ID, &user.CreatedAt)
+}
+
+func (m UserModel) GetByEmail(email string, user *User) error {
+	query := `
+        SELECT * FROM users
+        WHERE email = $1`
+	return m.DB.QueryRow(query, email).Scan(
+		&user.Email,
+		&user.Password,
+		&user.Username,
+		&user.FirstName,
+		&user.LastName,
+		&user.Avatar,
+		&user.ClubID,
+		&user.Sex,
+		&user.AboutMe,
+		&user.Country,
+		&user.Province,
+		&user.City,
+		&user.Neighborhood,
+		&user.ClubUserID,
+		&user.ChessAgeCategory,
+		&user.ELOFideStandard,
+		&user.ELOFideRapid,
+		&user.ELONationalStandard,
+		&user.ELONationalRapid,
+		&user.ELORegionalStandard,
+		&user.ELORegionalRapid,
+	)
+}
+
+func (m UserModel) UpdateUserByEmail(email string, user *User) error {
+	// todo
+	return nil
 }

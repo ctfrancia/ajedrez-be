@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 func (app *application) createNewUser(c *gin.Context) {
@@ -31,14 +32,17 @@ func (app *application) createNewUser(c *gin.Context) {
 	apiResponse(c, http.StatusCreated, "success", "user created", cnu)
 }
 
-func getUserByEmail(c *gin.Context) {
+func (app *application) getUserByEmail(c *gin.Context) {
 	email := c.Param("email")
-	resp := gin.H{
-		"message": fmt.Sprintf("get user by email: %s", email),
+	email = strings.ToLower(email)
+	var user data.User
+	err := app.models.Users.GetByEmail(email, &user)
+	if err != nil {
+		apiResponse(c, http.StatusNotFound, "error", "user not found", nil)
+		return
 	}
 
-	// response
-	c.JSON(http.StatusOK, resp)
+	apiResponse(c, http.StatusOK, "success", "user found", user)
 }
 
 func (app *application) getAllUsers(c *gin.Context) {
