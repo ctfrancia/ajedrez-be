@@ -49,7 +49,6 @@ func (m ClubModel) GetByName(name string) (*Club, error) {
 	query := `
         SELECT * FROM clubs
         WHERE name = $1`
-	fmt.Println(query)
 	var club Club
 	err := m.DB.QueryRow(query, name).Scan(
 		&club.ClubID,

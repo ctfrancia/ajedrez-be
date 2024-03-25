@@ -59,7 +59,7 @@ func main() {
 	// User routes
 	v1U.POST("/create", app.createNewUser)
 	v1U.GET("/:email", getUserByEmail)
-	v1U.GET("/all", getUsers)
+	v1U.GET("/all", app.getAllUsers)
 	v1U.PUT("/update/:email", updateUser)
 
 	// Tournament routes
@@ -68,6 +68,7 @@ func main() {
 	// Club routes
 	v1C.POST("/create", app.createNewClub)
 	v1C.GET("/by-name/:name", app.getClubByName)
+	// v1C.GET("/by-code/:code", app.getClubByCode)
 
 	port := fmt.Sprintf(":%d", cfg.port)
 	r.Run(port)

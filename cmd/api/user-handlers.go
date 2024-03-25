@@ -11,42 +11,21 @@ import (
 func (app *application) createNewUser(c *gin.Context) {
 	var cnu data.User
 	if err := c.ShouldBindJSON(&cnu); err != nil {
-		fmt.Println("cnu", cnu)
-		fmt.Println(" \n error", err.Error())
-		resp := gin.H{
-			"status":  "error",
-			"message": err.Error(),
-			"user":    cnu,
-		}
-		c.JSON(http.StatusBadRequest, resp)
+		apiResponse(c, http.StatusBadRequest, "error", err.Error(), cnu)
 		return
 	}
 
 	err := app.models.Users.Insert(&cnu)
 	if err != nil {
-        if err.Error() == "pq: duplicate key value violates unique constraint \"users_club_user_code_unique\"" {
-            resp := gin.H{
-                "status": "error",
-                "message": "user already exists",
-                "data": cnu,
-            }
-            c.JSON(http.StatusBadRequest, resp)
-            return
-        }
-        resp := gin.H{
-            "status": "error",
-            "message": err.Error(),
-            "data": cnu,
-        }
-		c.JSON(http.StatusInternalServerError, resp)
+		if err.Error() == "pq: duplicate key value violates unique constraint \"users_club_user_code_unique\"" {
+			apiResponse(c, http.StatusBadRequest, "error", "user already exists", cnu)
+			return
+		}
+		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), cnu)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-        "status": "success",
-		"message": nil,
-		"data":    cnu,
-	})
+	apiResponse(c, http.StatusCreated, "success", "user created", cnu)
 }
 
 func getUserByEmail(c *gin.Context) {
@@ -59,7 +38,7 @@ func getUserByEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func getUsers(c *gin.Context) {
+func (app *application) getAllUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "get users",
 	})
