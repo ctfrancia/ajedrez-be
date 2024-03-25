@@ -15,6 +15,9 @@ func (app *application) createNewUser(c *gin.Context) {
 		return
 	}
 
+	// normalize user data
+	normalizeUser(&cnu)
+
 	err := app.models.Users.Insert(&cnu)
 	if err != nil {
 		if err.Error() == "pq: duplicate key value violates unique constraint \"users_club_user_code_unique\"" {

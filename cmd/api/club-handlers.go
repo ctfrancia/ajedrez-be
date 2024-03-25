@@ -2,7 +2,6 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
-	"fmt"
 
 	"net/http"
 
@@ -12,40 +11,41 @@ import (
 func (app *application) createNewClub(c *gin.Context) {
 	var cnc data.Club
 	if err := c.ShouldBindJSON(&cnc); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apiResponse(c, http.StatusBadRequest, "error", err.Error(), cnc)
 		return
 	}
 
 	err := app.models.Clubs.Insert(&cnc)
 	if err != nil {
 		if err.Error() == "pq: duplicate key value violates unique constraint \"club_name_unique_check\"" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Club already exists"})
+			apiResponse(c, http.StatusBadRequest, "error", "Club already exists", cnc)
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), cnc)
 		return
 	}
 
-	resp := gin.H{
-		"message": "success",
-		"data":    cnc,
-	}
-	c.JSON(http.StatusCreated, resp)
+	apiResponse(c, http.StatusCreated, "success", "Club created", cnc)
 }
 
 func (app *application) getClubByName(c *gin.Context) {
+	var club data.Club
 	name := c.Param("name")
-	fmt.Println("name", name)
-	club, err := app.models.Clubs.GetByName(name)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Club not found"})
+	if err := c.ShouldBindUri(&name); err != nil {
+		apiResponse(c, http.StatusBadRequest, "error", err.Error(), club)
 		return
 	}
 
-	resp := gin.H{
-		"message": "success",
-		"data":    club,
+	err := app.models.Clubs.GetByName(name, &club)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			apiResponse(c, http.StatusNotFound, "error", "Club not found", club)
+			return
+		}
+		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), club)
+		return
 	}
-	c.JSON(http.StatusOK, resp)
+
+	apiResponse(c, http.StatusOK, "success", "Club found", club)
 }
