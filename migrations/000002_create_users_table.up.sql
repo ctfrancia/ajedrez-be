@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     about_me text NOT NULL DEFAULT '',
     sex text NOT NULL DEFAULT '',
 
-    club_id bigint NOT NULL DEFAULT '', -- fk to club table
+    club_id bigint NOT NULL DEFAULT 0, -- fk to club table
     chess_age_category text NOT NULL DEFAULT '',
 
     elo_fide_standard integer NOT NULL DEFAULT 1200,
