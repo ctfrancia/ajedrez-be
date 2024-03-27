@@ -21,3 +21,8 @@ func normalizeUser(u *data.User) {
 	u.Username = strings.Trim(u.Username, " ")
 	u.Country = strings.Trim(u.Country, " ")
 }
+
+func prepareUserUpdate(oldData *data.User, newData *data.User) *data.User {
+
+	return &data.User{}
+}

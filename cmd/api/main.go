@@ -57,10 +57,11 @@ func main() {
 	v1C := r.Group("/v1/club")
 
 	// User routes
-	v1U.GET("/all", app.getAllUsers)
+	// v1U.GET("/all", app.getAllUsers)
 	v1U.POST("/create", app.createNewUser)
 	v1U.GET("/:email", app.getUserByEmail)
-	v1U.PUT("/update/:email", updateUser)
+	v1U.PUT("/update/", app.updateUser)
+	v1U.DELETE("/delete/:email", app.deleteUser)
 
 	// Tournament routes
 	v1T.POST("/create", createNewTournament)
