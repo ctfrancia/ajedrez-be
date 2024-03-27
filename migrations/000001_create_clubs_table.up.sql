@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS clubs (
     code text NOT NULL,
     name text NOT NULL,
     address text NOT NULL,
-    observations text,
-    city text NOT NULL,
-    country text NOT NULL DEFAULT 'Spain'
+    observations text NOT NULL DEFAULT '',
+    city text NOT NULL DEFAULT '',
+    country text NOT NULL DEFAULT ''
 );

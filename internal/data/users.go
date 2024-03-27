@@ -6,46 +6,49 @@ import (
 )
 
 type User struct {
-	ID                  int           `json:"user_id,omitempty" db:"user_id"`
-	IsActive            bool          `json:"is_active,omitempty" db:"is_active"`
-	IsVerified          bool          `json:"is_verified,omitempty" db:"is_verified"`
-	IsAdminOfClub       bool          `json:"is_admin_of_club,omitempty" db:"is_admin_of_club"`
-	ClubAdminOf         sql.NullInt64 `json:"club_admin_of,omitempty" db:"club_admin_of"`
-	CreatedAt           sql.NullTime  `json:"created_at,omitempty" db:"created_at"`
-	UpdatedAt           sql.NullTime  `json:"updated_at,omitempty" db:"updated_at"`
-	DeletedAt           sql.NullTime  `json:"deleted_at,omitempty" db:"deleted_at"`
-	Email               string        `json:"email,omitempty" db:"email"`
-	Password            string        `json:"password,omitempty"   db:"password"`
-	PasswordResetToken  string        `json:"password_reset_token,omitempty" db:"password_reset_token"`
-	Username            string        `json:"username,omitempty" db:"username"`
-	FirstName           string        `json:"first_name,omitempty" binding:"required" db:"first_name"`
-	LastName            string        `json:"last_name,omitempty" binding:"required" db:"last_name"`
-	DateOfBirth         sql.NullTime  `json:"date_of_birth,omitempty" db:"dob"`
-	Avatar              string        `json:"avatar,omitempty" db:"avatar"`
-	ClubID              int           `json:"club_id,-" db:"club_id"`
-	ClubRoleID          sql.NullInt64 `json:"club_role_id,omitempty" db:"club_role_id"`
-	Sex                 string        `json:"sex,omitempty" db:"sex"`
-	AboutMe             string        `json:"about_me,omitempty" db:"about_me"`
-	Country             string        `json:"country,omitempty" db:"country"`
-	Province            string        `json:"province,omitempty" db:"province"`
-	City                string        `json:"city,omitempty" db:"city"`
-	Neighborhood        string        `json:"neighborhood,omitempty" db:"neighborhood"`
-	ClubUserID          string        `json:"club_user_code,omitempty" db:"club_user_code"`
-	IsArbiter           bool          `json:"is_arbiter,omitempty" db:"is_arbiter"`
-	IsCoach             bool          `json:"is_coach,omitempty" db:"is_coach"`
-	PricePerHour        float64       `json:"price_per_hour,omitempty" db:"price_per_hour"`
-	ChessComUsername    string        `json:"chess_com_username,omitempty" db:"chess_com_username"`
-	LichessUsername     string        `json:"lichess_username,omitempty" db:"lichess_username"`
-	Chess24Username     string        `json:"chess24_username,omitempty" db:"chess24_username"`
-	ChessAgeCategory    string        `json:"chess_age_category,omitempty" db:"chess_age_category"`
-	ELOFideStandard     int           `json:"elo_fide_standard,omitempty" db:"elo_fide_standard"`
-	ELOFideRapid        int           `json:"elo_fide_rapid,omitempty" db:"elo_fide_rapid"`
-	ELONationalStandard int           `json:"elo_national_standard,omitempty" db:"elo_national_standard"`
-	ELONationalRapid    int           `json:"elo_national_rapid,omitempty" db:"elo_national_rapid"`
-	ELORegionalStandard int           `json:"elo_regional_standard,omitempty" db:"elo_regional_standard"`
-	ELORegionalRapid    int           `json:"elo_regional_rapid,omitempty" db:"elo_regional_rapid"`
-	Version             int           `json:"version,omitempty" db:"version"`
-	UserCode            string        `json:"user_code,omitempty" db:"user_code"`
+	ID                  int       `json:"user_id,omitempty" db:"user_id"`
+	IsActive            bool      `json:"is_active,omitempty" db:"is_active"`
+	IsVerified          bool      `json:"is_verified,omitempty" db:"is_verified"`
+	CreatedAt           time.Time `json:"created_at,omitempty" db:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at,omitempty" db:"updated_at"`
+	SoftDeleted         bool      `json:"-" db:"soft_deleted"`
+	UserCode            string    `json:"user_code,omitempty" db:"user_code"`
+	FirstName           string    `json:"first_name,omitempty" binding:"required" db:"first_name"`
+	LastName            string    `json:"last_name,omitempty" binding:"required" db:"last_name"`
+	Username            string    `json:"username,omitempty" db:"username"`
+	Password            string    `json:"password,omitempty"   db:"password"`
+	PasswordResetToken  string    `json:"password_reset_token,omitempty" db:"password_reset_token"`
+	Email               string    `json:"email,omitempty" db:"email"`
+	Avatar              string    `json:"avatar,omitempty" db:"avatar"`
+	DateOfBirth         time.Time `json:"date_of_birth,omitempty" db:"dob"`
+	AboutMe             string    `json:"about_me,omitempty" db:"about_me"`
+	Sex                 string    `json:"sex,omitempty" db:"sex"`
+	ClubID              int       `json:"club_id,-" db:"club_id"`
+	ChessAgeCategory    string    `json:"chess_age_category,omitempty" db:"chess_age_category"`
+	ELOFideStandard     int       `json:"elo_fide_standard,omitempty" db:"elo_fide_standard"`
+	ELOFideRapid        int       `json:"elo_fide_rapid,omitempty" db:"elo_fide_rapid"`
+	ELOFideBlitz        int       `json:"elo_fide_blitz,omitempty" db:"elo_fide_blitz"`
+	ELOFideBullet       int       `json:"elo_fide_bullet,omitempty" db:"elo_fide_bullet"`
+	ELONationalStandard int       `json:"elo_national_standard,omitempty" db:"elo_national_standard"`
+	ELONationalRapid    int       `json:"elo_national_rapid,omitempty" db:"elo_national_rapid"`
+	ELONationalBlitz    int       `json:"elo_national_blitz,omitempty" db:"elo_national_blitz"`
+	ELONationalBullet   int       `json:"elo_national_bullet,omitempty" db:"elo_national_bullet"`
+	ELORegionalStandard int       `json:"elo_regional_standard,omitempty" db:"elo_regional_standard"`
+	ELORegionalRapid    int       `json:"elo_regional_rapid,omitempty" db:"elo_regional_rapid"`
+	ELORegionalBlitz    int       `json:"elo_regional_blitz,omitempty" db:"elo_regional_blitz"`
+	EloRegionalBullet   int       `json:"elo_regional_bullet,omitempty" db:"elo_regional_bullet"`
+	IsArbiter           bool      `json:"is_arbiter,omitempty" db:"is_arbiter"`
+	IsCoach             bool      `json:"is_coach,omitempty" db:"is_coach"`
+	PricePerHour        float     `json:"price_per_hour,omitempty" db:"price_per_hour"`
+	Currency            string    `json:"currency,omitempty" db:"currency"`
+	ChessComUsername    string    `json:"chess_com_username,omitempty" db:"chess_com_username"`
+	LichessUsername     string    `json:"lichess_username,omitempty" db:"lichess_username"`
+	Chess24Username     string    `json:"chess24_username,omitempty" db:"chess24_username"`
+	Country             string    `json:"country,omitempty" db:"country"`
+	Province            string    `json:"province,omitempty" db:"province"`
+	City                string    `json:"city,omitempty" db:"city"`
+	Neighborhood        string    `json:"neighborhood,omitempty" db:"neighborhood"`
+	Version             int       `json:"version,omitempty" db:"version"`
 }
 
 type UserModel struct {
