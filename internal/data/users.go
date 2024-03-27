@@ -3,6 +3,7 @@ package data
 import (
 	"database/sql"
 	"fmt"
+	"time"
 )
 
 type User struct {
@@ -39,7 +40,7 @@ type User struct {
 	EloRegionalBullet   int       `json:"elo_regional_bullet,omitempty" db:"elo_regional_bullet"`
 	IsArbiter           bool      `json:"is_arbiter,omitempty" db:"is_arbiter"`
 	IsCoach             bool      `json:"is_coach,omitempty" db:"is_coach"`
-	PricePerHour        float     `json:"price_per_hour,omitempty" db:"price_per_hour"`
+	PricePerHour        float32   `json:"price_per_hour,omitempty" db:"price_per_hour"`
 	Currency            string    `json:"currency,omitempty" db:"currency"`
 	ChessComUsername    string    `json:"chess_com_username,omitempty" db:"chess_com_username"`
 	LichessUsername     string    `json:"lichess_username,omitempty" db:"lichess_username"`
@@ -58,57 +59,56 @@ type UserModel struct {
 func (m UserModel) Insert(user *User) error {
 	query := `
         INSERT INTO users (
-            email,
-            password,
-            username,
+            is_active,
+            is_verified,
+            created_at,
+            updated_at,
+            soft_deleted,
+            user_code,
             first_name,
             last_name,
+            username,
+            password,
+            password_reset_token,
+            email,
             avatar,
-            club_id,
-            sex,
+            dob,
             about_me,
+            sex,
+            club_id,
+            chess_age_category,
+            elo_fide_standard,
+            elo_fide_rapid,
+            elo_fide_blitz,
+            elo_fide_bullet,
+            elo_national_standard,
+            elo_national_rapid,
+            elo_national_blitz,
+            elo_national_bullet,
+            elo_regional_standard,
+            elo_regional_rapid,
+            elo_regional_blitz,
+            elo_regional_bullet,
+            is_arbiter,
+            is_coach,
+            price_per_hour,
+            currency,
+            chess_com_username,
+            lichess_username,
+            chess24_username,
             country,
             province,
             city,
             neighborhood,
-            club_user_code,
-            chess_age_category,
-            elo_fide_standard,
-            elo_fide_rapid,
-            elo_national_standard,
-            elo_national_rapid,
-            elo_regional_standard,
-            elo_regional_rapid,
-            user_code
+            version
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
-        RETURNING user_id, created_at`
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+        $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
+        $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44)
+        RETURNING user_id, created_at, user_code`
 
-	args := []any{
-		user.Email,
-		user.Password,
-		user.Username,
-		user.FirstName,
-		user.LastName,
-		user.Avatar,
-		user.ClubID,
-		user.Sex,
-		user.AboutMe,
-		user.Country,
-		user.Province,
-		user.City,
-		user.Neighborhood,
-		user.ClubUserID,
-		user.ChessAgeCategory,
-		user.ELOFideStandard,
-		user.ELOFideRapid,
-		user.ELONationalStandard,
-		user.ELONationalRapid,
-		user.ELORegionalStandard,
-		user.ELORegionalRapid,
-		user.UserCode,
-	}
-	return m.DB.QueryRow(query, args...).Scan(&user.ID, &user.CreatedAt)
+	args := []any{}
+	return m.DB.QueryRow(query, args...).Scan(&user.ID, &user.CreatedAt, &user.UserCode)
 }
 
 func (m UserModel) GetByEmail(user *User) error {
@@ -129,7 +129,6 @@ func (m UserModel) GetByEmail(user *User) error {
 		&user.Province,
 		&user.City,
 		&user.Neighborhood,
-		&user.ClubUserID,
 		&user.UserCode,
 		&user.ChessAgeCategory,
 		&user.ELOFideStandard,
@@ -233,9 +232,6 @@ func (m UserModel) Update(nd *User) error {
 	args := []any{
 		nd.IsActive,
 		nd.IsVerified,
-		nd.IsAdminOfClub,
-		nd.ClubAdminOf,
-		nd.DeletedAt,
 		nd.FirstName,
 		nd.LastName,
 		nd.DateOfBirth,
@@ -246,7 +242,6 @@ func (m UserModel) Update(nd *User) error {
 		nd.PasswordResetToken,
 		nd.Avatar,
 		nd.ClubID,
-		nd.ClubRoleID,
 		nd.AboutMe,
 		nd.IsArbiter,
 		nd.IsCoach,
@@ -263,7 +258,6 @@ func (m UserModel) Update(nd *User) error {
 		nd.ELONationalStandard,
 		nd.ELONationalRapid,
 		nd.ELORegionalStandard,
-		nd.ClubUserID,
 		nd.ChessAgeCategory,
 		nd.ELORegionalRapid,
 		nd.UserCode,
@@ -330,11 +324,8 @@ func (m UserModel) GetByUserCode(code string) (*User, error) {
 	err := m.DB.QueryRow(query, code).Scan(
 		&u.IsActive,
 		&u.IsVerified,
-		&u.IsAdminOfClub,
-		&u.ClubAdminOf,
 		&u.CreatedAt,
 		&u.UpdatedAt,
-		&u.DeletedAt,
 		&u.FirstName,
 		&u.LastName,
 		&u.DateOfBirth,
@@ -343,7 +334,6 @@ func (m UserModel) GetByUserCode(code string) (*User, error) {
 		&u.Email,
 		&u.Avatar,
 		&u.ClubID,
-		&u.ClubRoleID,
 		&u.AboutMe,
 		&u.IsArbiter,
 		&u.IsCoach,
@@ -361,7 +351,6 @@ func (m UserModel) GetByUserCode(code string) (*User, error) {
 		&u.ELONationalRapid,
 		&u.ELORegionalStandard,
 		&u.ELORegionalRapid,
-		&u.ClubUserID,
 		&u.ChessAgeCategory,
 		&u.Version,
 		&u.UserCode,
