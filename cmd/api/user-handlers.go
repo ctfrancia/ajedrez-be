@@ -2,12 +2,9 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
-	// "database/sql"
 	"fmt"
-	"log"
 	"net/http"
 
-	// "errors"
 	"io"
 	"strings"
 
@@ -15,7 +12,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/roserocket/gopartial"
 )
 
 func (app *application) createNewUser(c *gin.Context) {
@@ -58,78 +54,34 @@ func (app *application) getUserByEmail(c *gin.Context) {
 }
 
 func (app *application) updateUser(c *gin.Context) {
-	// var oldData *data.User
-	var incommingData *data.User
-
-	/*
-		var newData *data.User
-		if err := c.ShouldBindJSON(&newData); err != nil {
-			apiResponse(c, http.StatusBadRequest, "error", err.Error(), newData)
-			return
-		}
-	*/
+	var incommingData map[string]interface{}
 	jsonData, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
 		return
 	}
 
-	fmt.Println("jsonData", string(jsonData))
 	json.Unmarshal(jsonData, &incommingData)
-	fmt.Printf("incommingData %#v\n", incommingData)
-	// user, err := updateUserPartially(oldData, jsonData)
-	err = app.models.Users.Update(incommingData)
-	if err != nil {
-		fmt.Println("Error updating user: ", err)
-		// apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
+	if _, ok := incommingData["user_code"]; !ok {
+		apiResponse(c, http.StatusBadRequest, "error", "user_code is required", incommingData)
 		return
 	}
-	/*
-		    if err != nil {
-		        apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
-		        return
-		    }
-		    fmt.Println("user", user)
 
-			oldData, err := app.models.Users.GetByUserCode(newData.UserCode)
-			if err != nil {
-				apiResponse(c, http.StatusNotFound, "error", "user not found", nil)
-				return
-			}
-	*/
-	/*
-		var newData *data.User
-		if err := c.ShouldBindJSON(&newData); err != nil {
-			apiResponse(c, http.StatusBadRequest, "error", err.Error(), newData)
-			return
-		}
-		_, err := uuid.Parse(newData.UserCode)
-		if err != nil {
-			apiResponse(c, http.StatusBadRequest, "error", "invalid user code", newData)
-			return
-		}
+	_, err = uuid.Parse(incommingData["user_code"].(string))
+	if err != nil {
+		apiResponse(c, http.StatusBadRequest, "error", "invalid user_code", incommingData)
+		return
+	}
 
-		oldData, err = app.models.Users.GetByUserCode(newData.UserCode)
-		if err != nil {
-			apiResponse(c, http.StatusNotFound, "error", "user not found", nil)
-			return
-		}
+	vn, err := app.models.Users.Update(incommingData)
+	if err != nil {
+		fmt.Println("Error updating user: ", err)
+		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
+		return
+	}
 
-		// u := prepareUserUpdate(oldData, newData)
-		// fmt.Println("newData", u)
-
-		err = app.models.Users.Update(oldData, newData)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				apiResponse(c, http.StatusNotFound, "error", "record not found", newData)
-				return
-			}
-			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), newData)
-			return
-		}
-
-		apiResponse(c, http.StatusCreated, "success", "user updated", newData)
-	*/
+	incommingData["version"] = vn
+	apiResponse(c, http.StatusOK, "success", "user updated", incommingData)
 }
 
 func (app *application) deleteUser(c *gin.Context) {
@@ -142,14 +94,4 @@ func (app *application) deleteUser(c *gin.Context) {
 	}
 
 	apiResponse(c, http.StatusOK, "success", "user deleted", nil)
-}
-func updateUserPartially(user *data.User, partialDataJSON json.RawMessage) (*data.User, error) {
-	var partialData map[string]interface{}
-	if err := json.Unmarshal(partialDataJSON, &partialData); err != nil {
-		fmt.Println("Error unmarshalling partial data: ", err)
-	}
-	updatedFields, err := gopartial.PartialUpdate(user, partialData, "json", gopartial.SkipConditions, gopartial.Updaters)
-	log.Println("Updated fields: ", updatedFields)
-
-	return user, err
 }

@@ -3,6 +3,7 @@ package data
 import (
 	"database/sql"
 	"fmt"
+	"github.com/Masterminds/squirrel"
 	"time"
 )
 
@@ -183,131 +184,32 @@ func (m UserModel) GetByEmail(user *User) error {
 	)
 }
 
-func (m UserModel) Update(nd *User) error {
-	fmt.Println("user", nd)
-	query := `
-            UPDATE users
-		        SET
-		        is_active = CASE WHEN $1. IS NULL THEN is_active ELSE $1 END,
-		        is_verified = CASE WHEN $2 IS NULL THEN is_verified ELSE $2 END,
-		        is_admin_of_club = CASE WHEN $3 IS NULL THEN is_admin_of_club ELSE $3 END,
-		        club_admin_of = CASE WHEN $4 IS NULL THEN club_admin_of ELSE $4 END,
-		        deleted_at = CASE WHEN $5 IS NULL THEN deleted_at ELSE $5 END,
-		        first_name = CASE WHEN $6 IS NULL THEN first_name ELSE $6 END,
-		        last_name = CASE WHEN $7 IS NULL THEN last_name ELSE $7 END,
-		        dob = CASE WHEN $8 IS NULL THEN dob ELSE $8 END,
-		        sex = CASE WHEN $9 IS NULL THEN sex ELSE $9 END,
-		        username = CASE WHEN $10 IS NULL THEN username ELSE $10 END,
-		        email = CASE WHEN $11 IS NULL THEN email ELSE $11 END,
-		        password = CASE WHEN $12 IS NULL THEN password ELSE $12 END,
-		        password_reset_token = CASE WHEN $13 IS NULL THEN password_reset_token ELSE $13 END,
-		        avatar = CASE WHEN $14 IS NULL THEN avatar ELSE $14 END,
-		        club_id = CASE WHEN $15 IS NULL THEN club_id ELSE $15 END,
-		        club_role_id = CASE WHEN $16 IS NULL THEN club_role_id ELSE $16 END,
-		        about_me = CASE WHEN $17 IS NULL THEN about_me ELSE $17 END,
-		        is_arbiter = CASE WHEN $18 IS NULL THEN is_arbiter ELSE $18 END,
-		        is_coach = CASE WHEN $19 IS NULL THEN is_coach ELSE $19 END,
-		        price_per_hour = CASE WHEN $20 IS NULL THEN price_per_hour ELSE $20 END,
-		        chess_com_username = CASE WHEN $21 IS NULL THEN chess_com_username ELSE $21 END,
-		        lichess_username = CASE WHEN $22 IS NULL THEN lichess_username ELSE $22 END,
-		        chess24_username = CASE WHEN $23 IS NULL THEN chess24_username ELSE $23 END,
-		        country = CASE WHEN $24 IS NULL THEN country ELSE $24 END,
-		        province = CASE WHEN $25 IS NULL THEN province ELSE $25 END,
-		        city = CASE WHEN $26 IS NULL THEN city ELSE $26 END,
-		        neighborhood = CASE WHEN $27 IS NULL THEN neighborhood ELSE $27 END,
-		        elo_fide_standard = CASE WHEN $28 IS NULL THEN elo_fide_standard ELSE $28 END,
-		        elo_fide_rapid = CASE WHEN $29 IS NULL THEN elo_fide_rapid ELSE $29 END,
-		        elo_national_standard = CASE WHEN $30 IS NULL THEN elo_national_standard ELSE $30 END,
-		        elo_national_rapid = CASE WHEN $31 IS NULL THEN elo_national_rapid ELSE $31 END,
-		        elo_regional_standard = CASE WHEN $32 IS NULL THEN elo_regional_standard ELSE $32 END,
-		        club_user_code = CASE WHEN $33 IS NULL THEN club_user_code ELSE $33 END,
-		        chess_age_category = CASE WHEN $34 IS NULL THEN chess_age_category ELSE $34 END,
-		        elo_regional_rapid = CASE WHEN $35 IS NULL THEN elo_regional_rapid ELSE $35 END,
-		        version = version + 1
-            WHERE user_code = $36
-            RETURNING version`
-	/*
-			query := `
-		        UPDATE users
+func (m UserModel) Update(nd map[string]interface{}) (int, error) {
+	var user *User
+	user = &User{}
 
-		        SET
-		         is_active = $1,
-		         is_verified = $2,
-		         is_admin_of_club = $3,
-		         club_admin_of = $4,
-		         deleted_at = $5,
-		         first_name = $6,
-		         last_name = $7,
-		         dob = $8,
-		         sex = $9,
-		         username = $10,
-		         email = $11,
-		         password = $12,
-		         password_reset_token = $13,
-		         avatar = $14,
-		         club_id = $15,
-		         club_role_id = $16,
-		         about_me = $17,
-		         is_arbiter = $18,
-		         is_coach = $19,
-		         price_per_hour = $20,
-		         chess_com_username = $21,
-		         lichess_username = $22,
-		         chess24_username = $23,
-		         country = $24,
-		         province = $25,
-		         city = $26,
-		         neighborhood = $27,
-		         elo_fide_standard = $28,
-		         elo_fide_rapid = $29,
-		         elo_national_standard = $30,
-		         elo_national_rapid = $31,
-		         elo_regional_standard = $32,
-		         club_user_code = $33,
-		         chess_age_category = $34,
-		         elo_regional_rapid = $35,
-		         version = version + 1
-		        WHERE user_code = $36
-		        RETURNING version`
-	*/
-
-	args := []any{
-		nd.IsActive,
-		nd.IsVerified,
-		nd.FirstName,
-		nd.LastName,
-		nd.DateOfBirth,
-		nd.Sex,
-		nd.Username,
-		nd.Email,
-		nd.Password,
-		nd.PasswordResetToken,
-		nd.Avatar,
-		nd.ClubID,
-		nd.AboutMe,
-		nd.IsArbiter,
-		nd.IsCoach,
-		nd.PricePerHour,
-		nd.ChessComUsername,
-		nd.LichessUsername,
-		nd.Chess24Username,
-		nd.Country,
-		nd.Province,
-		nd.City,
-		nd.Neighborhood,
-		nd.ELOFideStandard,
-		nd.ELOFideRapid,
-		nd.ELONationalStandard,
-		nd.ELONationalRapid,
-		nd.ELORegionalStandard,
-		nd.ChessAgeCategory,
-		nd.ELORegionalRapid,
-		nd.UserCode,
+	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	u := psql.Update("users")
+	for key, value := range nd {
+		if key == "'user_code'" {
+			continue
+		}
+		u = u.Set(key, value)
 	}
-	a := fmt.Sprintf("%#v", nd)
-	fmt.Println("asdasd", a)
-	return m.DB.QueryRow(query, args...).Scan(&nd.Version)
-	return nil
+	u = u.Set("updated_at", time.Now())
+	u = u.Set("version", squirrel.Expr("version + 1"))
+	u = u.Where(squirrel.Eq{"user_code": nd["user_code"]})
+	u = u.Suffix("RETURNING \"version\"")
+
+	query, args, err := u.ToSql()
+	if err != nil {
+		fmt.Println("error creating query: ", err)
+		return 0, err
+	}
+
+	err = m.DB.QueryRow(query, args...).Scan(&user.Version)
+
+	return user.Version, err
 }
 
 func (m UserModel) Delete(email string) error {
