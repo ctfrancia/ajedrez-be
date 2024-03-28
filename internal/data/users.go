@@ -3,7 +3,7 @@ package data
 import (
 	"database/sql"
 	"fmt"
-	"github.com/Masterminds/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	"time"
 )
 
@@ -188,7 +188,7 @@ func (m UserModel) Update(nd map[string]interface{}) (int, error) {
 	var user *User
 	user = &User{}
 
-	psql := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	u := psql.Update("users")
 	for key, value := range nd {
 		if key == "'user_code'" {
@@ -197,7 +197,7 @@ func (m UserModel) Update(nd map[string]interface{}) (int, error) {
 		u = u.Set(key, value)
 	}
 	u = u.Set("updated_at", time.Now())
-	u = u.Set("version", squirrel.Expr("version + 1"))
+	u = u.Set("version", sq.Expr("version + 1"))
 	u = u.Where(squirrel.Eq{"user_code": nd["user_code"]})
 	u = u.Suffix("RETURNING \"version\"")
 
