@@ -198,7 +198,7 @@ func (m UserModel) Update(nd map[string]interface{}) (int, error) {
 	}
 	u = u.Set("updated_at", time.Now())
 	u = u.Set("version", sq.Expr("version + 1"))
-	u = u.Where(squirrel.Eq{"user_code": nd["user_code"]})
+	u = u.Where(sq.Eq{"user_code": nd["user_code"]})
 	u = u.Suffix("RETURNING \"version\"")
 
 	query, args, err := u.ToSql()
