@@ -5,11 +5,16 @@ import (
 	"ctfrancia/ajedrez-be/internal/data"
 	"ctfrancia/ajedrez-be/internal/mailer"
 	"database/sql"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"net/http"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 )
 
@@ -34,6 +39,7 @@ type application struct {
 	config config
 	models data.Models
 	mailer mailer.Mailer
+	wg     sync.WaitGroup
 }
 
 const version = "1.0.0"
@@ -45,10 +51,6 @@ func main() {
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
-	// Read the SMTP server configuration settings into the config struct, using the
-	// Mailtrap settings as the default values. IMPORTANT: If you're following along,
-	// make sure to replace the default values for smtp-username and smtp-password
-	// with your own Mailtrap credentials.
 	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
 	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
 	flag.StringVar(&cfg.smtp.username, "smtp-username", "7005680924ace2", "SMTP username")
@@ -70,28 +72,10 @@ func main() {
 		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
 
-	r := gin.Default()
-	v1U := r.Group("/v1/user")
-	v1T := r.Group("/v1/tournament")
-	v1C := r.Group("/v1/club")
-
-	// User routes
-	// v1U.GET("/all", app.getAllUsers)
-	v1U.POST("/create", app.createNewUser)
-	v1U.GET("/:email", app.getUserByEmail)
-	v1U.PUT("/update/", app.updateUser)
-	v1U.DELETE("/delete/:email", app.deleteUser)
-
-	// Tournament routes
-	v1T.POST("/create", createNewTournament)
-
-	// Club routes
-	v1C.POST("/create", app.createNewClub)
-	v1C.GET("/by-name/:name", app.getClubByName)
-	// v1C.GET("/by-code/:code", app.getClubByCode)
-
-	port := fmt.Sprintf(":%d", cfg.port)
-	r.Run(port)
+	err = app.serve()
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func openDB(cfg config) (*sql.DB, error) {
@@ -124,5 +108,84 @@ func openDB(cfg config) (*sql.DB, error) {
 
 	// Return the sql.DB connection pool.
 	return db, nil
+}
 
+func (app *application) serve() error {
+
+	r := gin.Default()
+	v1U := r.Group("/v1/user")
+	v1T := r.Group("/v1/tournament")
+	v1C := r.Group("/v1/club")
+
+	// User routes
+	// v1U.GET("/all", app.getAllUsers)
+	v1U.POST("/create", app.createNewUser)
+	v1U.GET("/:email", app.getUserByEmail)
+	v1U.PUT("/update/", app.updateUser)
+	v1U.DELETE("/delete/:email", app.deleteUser)
+
+	// Tournament routes
+	v1T.POST("/create", createNewTournament)
+
+	// Club routes
+	v1C.POST("/create", app.createNewClub)
+	v1C.GET("/by-name/:name", app.getClubByName)
+	// v1C.GET("/by-code/:code", app.getClubByCode)
+
+	port := fmt.Sprintf(":%d", app.config.port)
+	// srv.ListenAndServe()
+	r.Run(port)
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%d", app.config.port),
+		Handler:      r,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
+	shutdownError := make(chan error)
+
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		s := <-quit
+		fmt.Printf("shutting down server, signal: %s", s.String())
+
+		// app.logger.Info("shutting down server", "signal", s.String())
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		// Call Shutdown() on the server like before, but now we only send on the
+		// shutdownError channel if it returns an error.
+		err := srv.Shutdown(ctx)
+		if err != nil {
+			shutdownError <- err
+		}
+
+		fmt.Printf("completing background tasks: %s", srv.Addr)
+
+		// Call Wait() to block until our WaitGroup counter is zero --- essentially
+		// blocking until the background goroutines have finished. Then we return nil on
+		// the shutdownError channel, to indicate that the shutdown completed without
+		// any issues.
+		app.wg.Wait()
+		shutdownError <- nil
+	}()
+
+	// app.logger.Info("starting server", "addr", srv.Addr, "env", app.config.env)
+
+	err := srv.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	err = <-shutdownError
+	if err != nil {
+		return err
+	}
+
+	// app.logger.Info("stopped server", "addr", srv.Addr)
+
+	return nil
 }

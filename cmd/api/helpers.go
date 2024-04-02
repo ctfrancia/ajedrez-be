@@ -27,8 +27,10 @@ func prepareUserUpdate(oldData *data.User, newData *data.User) *data.User {
 	return &data.User{}
 }
 func (app *application) background(fn func()) {
+	app.wg.Add(1)
 	// Launch a background goroutine.
 	go func() {
+		app.wg.Done()
 		// Recover any panic.
 		defer func() {
 			if err := recover(); err != nil {
