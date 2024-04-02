@@ -92,13 +92,19 @@ func (app *application) createNewUser(c *gin.Context) {
 		}
 		return
 	}
-	err = app.mailer.Send(cnu.Email, "user_welcome_en.tmpl", cnu)
-	if err != nil {
-		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
-		return
-	}
+	// launch go routine to send welcome email in the background
+	// this lowers latency of the API response
+	app.background(func() {
+		// TODO: the welcome template will be based on users' preferred language
+		// need to modify user model/databse to include language preference
+		err = app.mailer.Send(cnu.Email, "user_welcome_en.tmpl", cnu)
+		if err != nil {
+			// TODO log error
+			// app.logger.Error(err.Error())
+		}
+	})
 
-	apiResponse(c, http.StatusCreated, "success", "user created", cnu)
+	apiResponse(c, http.StatusAccepted, "success", "user created", cnu)
 }
 
 func (app *application) getUserByEmail(c *gin.Context) {

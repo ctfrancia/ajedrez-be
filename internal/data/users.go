@@ -69,6 +69,7 @@ type UserModel struct {
 }
 
 func (m UserModel) Insert(user *User) error {
+	timeNow := time.Now()
 	query := `
         INSERT INTO users (
             is_active,
@@ -121,8 +122,8 @@ func (m UserModel) Insert(user *User) error {
 	args := []any{
 		user.IsActive,
 		user.IsVerified,
-		user.CreatedAt,
-		user.UpdatedAt,
+		timeNow,
+		timeNow,
 		user.SoftDeleted,
 		user.UserCode,
 		user.FirstName,
