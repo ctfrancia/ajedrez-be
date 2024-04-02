@@ -7,18 +7,66 @@ import (
 
 	"io"
 	"strings"
+	"time"
 
 	"encoding/json"
+	"errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 func (app *application) createNewUser(c *gin.Context) {
-	var cnu data.User
-	if err := c.ShouldBindJSON(&cnu); err != nil {
-		apiResponse(c, http.StatusBadRequest, "error", err.Error(), cnu)
+	// TODO: move this to public dto
+	var input struct {
+		FirstName        string    `json:"first_name"`
+		LastName         string    `json:"last_name"`
+		DateOfBirth      time.Time `json:"date_of_birth"`
+		Sex              string    `json:"sex"`
+		ClubID           int       `json:"club_id"`
+		ChessAgeCategory string    `json:"chess_age_category"`
+
+		ELOFideStandard int `json:"elo_fide_standard"`
+		ELOFideRapid    int `json:"elo_fide_rapid"`
+		ELOFideBlitz    int `json:"elo_fide_blitz"`
+		ELOFideBullet   int `json:"elo_fide_bullet"`
+
+		ELONationalStandard int `json:"elo_national_standard"`
+		ELONationalRapid    int `json:"elo_national_rapid"`
+		ELONationalBlitz    int `json:"elo_national_blitz"`
+		ELONationalBullet   int `json:"elo_national_bullet"`
+
+		ELORegionalStandard int    `json:"elo_regional_standard"`
+		ELORegionalRapid    int    `json:"elo_regional_rapid"`
+		ELORegionalBlitz    int    `json:"elo_regional_blitz"`
+		ELORegionalBullet   int    `json:"elo_regional_bullet"`
+		Email               string `json:"email"`
+		Password            string `json:"-"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
 		return
+	}
+	cnu := data.User{
+		FirstName:           input.FirstName,
+		LastName:            input.LastName,
+		DateOfBirth:         input.DateOfBirth,
+		Sex:                 input.Sex,
+		ClubID:              input.ClubID,
+		ChessAgeCategory:    input.ChessAgeCategory,
+		ELOFideStandard:     input.ELOFideStandard,
+		ELOFideRapid:        input.ELOFideRapid,
+		ELOFideBlitz:        input.ELOFideBlitz,
+		ELOFideBullet:       input.ELOFideBullet,
+		ELONationalStandard: input.ELONationalStandard,
+		ELONationalRapid:    input.ELONationalRapid,
+		ELONationalBlitz:    input.ELONationalBlitz,
+		ELONationalBullet:   input.ELONationalBullet,
+		ELORegionalStandard: input.ELORegionalStandard,
+		ELORegionalRapid:    input.ELORegionalRapid,
+		ELORegionalBlitz:    input.ELORegionalBlitz,
+		ELORegionalBullet:   input.ELORegionalBullet,
+		Email:               input.Email,
 	}
 
 	// normalize user data before inserting into the database
@@ -26,14 +74,27 @@ func (app *application) createNewUser(c *gin.Context) {
 
 	// create user's unique code
 	cnu.UserCode = uuid.New().String()
+	// cnu.Password.plainText = cnu.Password
 
-	err := app.models.Users.Insert(&cnu)
+	err := cnu.Password.Set(input.Password)
 	if err != nil {
-		if err.Error() == "pq: duplicate key value violates unique constraint \"users_club_user_code_unique\"" {
-			apiResponse(c, http.StatusBadRequest, "error", "user already exists", cnu)
-			return
+		apiResponse(c, http.StatusBadRequest, "error", err.Error(), cnu)
+		return
+	}
+
+	err = app.models.Users.Insert(&cnu)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrDuplicateEmail):
+			apiResponse(c, http.StatusBadRequest, "error", "email exists", cnu)
+		default:
+			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), cnu)
 		}
-		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), cnu)
+		return
+	}
+	err = app.mailer.Send(cnu.Email, "user_welcome_en.tmpl", cnu)
+	if err != nil {
+		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
 		return
 	}
 
@@ -73,14 +134,13 @@ func (app *application) updateUser(c *gin.Context) {
 		return
 	}
 
-	vn, err := app.models.Users.Update(incommingData)
+	err = app.models.Users.Update(incommingData)
 	if err != nil {
 		fmt.Println("Error updating user: ", err)
 		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
 		return
 	}
 
-	incommingData["version"] = vn
 	apiResponse(c, http.StatusOK, "success", "user updated", incommingData)
 }
 

@@ -1,12 +1,23 @@
 package data
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
+var (
+	ErrDuplicateEmail = errors.New("duplicate email")
+)
+
+type password struct {
+	plaintext *string
+	hashed    []byte
+}
 type User struct {
 	ID                  int       `json:"user_id,omitempty" db:"user_id"`
 	IsActive            bool      `json:"is_active,omitempty" db:"is_active"`
@@ -18,7 +29,7 @@ type User struct {
 	FirstName           string    `json:"first_name,omitempty" binding:"required" db:"first_name"`
 	LastName            string    `json:"last_name,omitempty" binding:"required" db:"last_name"`
 	Username            string    `json:"username,omitempty" db:"username"`
-	Password            string    `json:"password,omitempty"   db:"password"`
+	Password            password  `json:"-" db:"password"`
 	PasswordResetToken  string    `json:"password_reset_token,omitempty" db:"password_reset_token"`
 	Email               string    `json:"email,omitempty" db:"email"`
 	Avatar              string    `json:"avatar,omitempty" db:"avatar"`
@@ -38,7 +49,7 @@ type User struct {
 	ELORegionalStandard int       `json:"elo_regional_standard,omitempty" db:"elo_regional_standard"`
 	ELORegionalRapid    int       `json:"elo_regional_rapid,omitempty" db:"elo_regional_rapid"`
 	ELORegionalBlitz    int       `json:"elo_regional_blitz,omitempty" db:"elo_regional_blitz"`
-	EloRegionalBullet   int       `json:"elo_regional_bullet,omitempty" db:"elo_regional_bullet"`
+	ELORegionalBullet   int       `json:"elo_regional_bullet,omitempty" db:"elo_regional_bullet"`
 	IsArbiter           bool      `json:"is_arbiter,omitempty" db:"is_arbiter"`
 	IsCoach             bool      `json:"is_coach,omitempty" db:"is_coach"`
 	PricePerHour        float32   `json:"price_per_hour,omitempty" db:"price_per_hour"`
@@ -50,7 +61,7 @@ type User struct {
 	Province            string    `json:"province,omitempty" db:"province"`
 	City                string    `json:"city,omitempty" db:"city"`
 	Neighborhood        string    `json:"neighborhood,omitempty" db:"neighborhood"`
-	Version             int       `json:"version,omitempty" db:"version"`
+	Version             int       `json:"-" db:"version"`
 }
 
 type UserModel struct {
@@ -58,7 +69,6 @@ type UserModel struct {
 }
 
 func (m UserModel) Insert(user *User) error {
-	fmt.Println("user", user)
 	query := `
         INSERT INTO users (
             is_active,
@@ -118,7 +128,7 @@ func (m UserModel) Insert(user *User) error {
 		user.FirstName,
 		user.LastName,
 		user.Username,
-		user.Password,
+		user.Password.hashed,
 		user.PasswordResetToken,
 		user.Email,
 		user.Avatar,
@@ -138,7 +148,7 @@ func (m UserModel) Insert(user *User) error {
 		user.ELORegionalStandard,
 		user.ELORegionalRapid,
 		user.ELORegionalBlitz,
-		user.EloRegionalBullet,
+		user.ELORegionalBullet,
 		user.IsArbiter,
 		user.IsCoach,
 		user.PricePerHour,
@@ -151,7 +161,19 @@ func (m UserModel) Insert(user *User) error {
 		user.City,
 		user.Neighborhood,
 	}
-	return m.DB.QueryRow(query, args...).Scan(&user.ID, &user.CreatedAt, &user.UserCode)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.CreatedAt, &user.UserCode)
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_unique"`:
+			return ErrDuplicateEmail
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
 func (m UserModel) GetByEmail(user *User) error {
@@ -184,7 +206,7 @@ func (m UserModel) GetByEmail(user *User) error {
 	)
 }
 
-func (m UserModel) Update(nd map[string]interface{}) (int, error) {
+func (m UserModel) Update(nd map[string]interface{}) error {
 	var user *User
 	user = &User{}
 
@@ -204,12 +226,26 @@ func (m UserModel) Update(nd map[string]interface{}) (int, error) {
 	query, args, err := u.ToSql()
 	if err != nil {
 		fmt.Println("error creating query: ", err)
-		return 0, err
+		return err
 	}
 
-	err = m.DB.QueryRow(query, args...).Scan(&user.Version)
+	// err = m.DB.QueryRow(query, args...).Scan(&user.Version)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-	return user.Version, err
+	err = m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Version)
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+			return ErrDuplicateEmail
+		case errors.Is(err, sql.ErrNoRows):
+			return errors.New("ErrEditConflict")
+		default:
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (m UserModel) Delete(email string) error {
@@ -299,7 +335,32 @@ func (m UserModel) GetByUserCode(code string) (*User, error) {
 		&u.Version,
 		&u.UserCode,
 	)
-	// fmt.Printf("\n user after being fetched: %#v\n", u)
-	// fmt.Printf("error after being fetched: %#v", err)
+
 	return &u, err
+}
+
+func (p *password) Set(plain string) error {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(plain), 12)
+	if err != nil {
+		return err
+	}
+
+	p.plaintext = &plain
+	p.hashed = hashed
+
+	return nil
+}
+
+func (p *password) Matches(plaintextPassword string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword(p.hashed, []byte(plaintextPassword))
+	if err != nil {
+		switch {
+		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+			return false, nil
+		default:
+			return false, err
+		}
+	}
+
+	return true, nil
 }
