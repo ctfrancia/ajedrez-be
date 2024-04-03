@@ -2,7 +2,7 @@ package mailer
 
 import (
 	"bytes"
-	"ctfrancia/ajedrez-be/internal/data"
+	// 	"ctfrancia/ajedrez-be/internal/data"
 	"embed"
 	"html/template"
 	"time"
@@ -34,7 +34,7 @@ func New(host string, port int, username, password, sender string) Mailer {
 // Define a Send() method on the Mailer type. This takes the recipient email address
 // as the first parameter, the name of the file containing the templates, and any
 // dynamic data for the templates as an any parameter.
-func (m Mailer) Send(recipient, templateFile string, data data.User) error {
+func (m Mailer) Send(recipient, templateFile string, data any) error {
 	// Use the ParseFS() method to parse the required template file from the embedded
 	// file system.
 	tmpl, err := template.New("email").ParseFS(templateFS, "templates/"+templateFile)

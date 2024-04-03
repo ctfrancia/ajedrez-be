@@ -123,6 +123,7 @@ func (app *application) serve() error {
 	v1U.GET("/:email", app.getUserByEmail)
 	v1U.PUT("/update/", app.updateUser)
 	v1U.DELETE("/delete/:email", app.deleteUser)
+	v1U.PUT("/activated", app.activateUser)
 
 	// Tournament routes
 	v1T.POST("/create", createNewTournament)

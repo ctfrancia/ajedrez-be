@@ -92,12 +92,24 @@ func (app *application) createNewUser(c *gin.Context) {
 		}
 		return
 	}
+	// After the user record has been created in the database, generate a new activation
+	// token for the user.
+	token, err := app.models.Tokens.New(cnu.ID, 3*24*time.Hour, data.ScopeActivation)
+	if err != nil {
+		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
+		return
+	}
+
 	// launch go routine to send welcome email in the background
 	// this lowers latency of the API response
 	app.background(func() {
+		data := map[string]any{
+			"activationToken": token.Plaintext,
+			"userID":          cnu.ID,
+		}
 		// TODO: the welcome template will be based on users' preferred language
 		// need to modify user model/databse to include language preference
-		err = app.mailer.Send(cnu.Email, "user_welcome_en.tmpl", cnu)
+		err = app.mailer.Send(cnu.Email, "user_welcome_en.tmpl", data)
 		if err != nil {
 			// TODO log error
 			// app.logger.Error(err.Error())
@@ -160,4 +172,61 @@ func (app *application) deleteUser(c *gin.Context) {
 	}
 
 	apiResponse(c, http.StatusOK, "success", "user deleted", nil)
+}
+
+func (app *application) activateUser(c *gin.Context) {
+	var input struct {
+		TokenPlaintext string `json:"token"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
+		return
+	}
+
+	if err := data.ValidateTokenPlaintext(input.TokenPlaintext); err != nil {
+		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
+		return
+	}
+
+	user, err := app.models.Users.GetForToken(data.ScopeActivation, input.TokenPlaintext)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			apiResponse(c, http.StatusNotFound, "error", "user not found", nil)
+		default:
+			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
+		}
+		return
+	}
+
+	u := map[string]interface{}{
+		"user_id":   user.ID,
+		"activated": true,
+	}
+
+	err = app.models.Users.Update(u)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			apiResponse(c, http.StatusConflict, "error", "edit conflict", nil)
+
+		case errors.Is(err, data.ErrRecordNotFound):
+			apiResponse(c, http.StatusNotFound, "error", err.Error(), nil)
+
+		default:
+			fmt.Println("Error activating user: ", err)
+			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
+		}
+		return
+	}
+
+	err = app.models.Tokens.DeleteAllForUser(data.ScopeActivation, user.ID)
+	if err != nil {
+		// app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// Send the updated user details to the client in a JSON response.
+	apiResponse(c, http.StatusOK, "success", "user activated", user)
 }
