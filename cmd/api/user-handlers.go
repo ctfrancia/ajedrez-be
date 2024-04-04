@@ -223,7 +223,7 @@ func (app *application) activateUser(c *gin.Context) {
 
 	err = app.models.Tokens.DeleteAllForUser(data.ScopeActivation, user.ID)
 	if err != nil {
-		// app.serverErrorResponse(w, r, err)
+		apiResponse(c, http.StatusNotFound, "error", err.Error(), nil)
 		return
 	}
 
