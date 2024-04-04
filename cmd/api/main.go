@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -74,7 +75,7 @@ func main() {
 
 	err = app.serve()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 }
 
@@ -116,6 +117,7 @@ func (app *application) serve() error {
 	v1U := r.Group("/v1/user")
 	v1T := r.Group("/v1/tournament")
 	v1C := r.Group("/v1/club")
+	v1Tokens := r.Group("/v1/tokens")
 
 	// User routes
 	// v1U.GET("/all", app.getAllUsers)
@@ -132,6 +134,9 @@ func (app *application) serve() error {
 	v1C.POST("/create", app.createNewClub)
 	v1C.GET("/by-name/:name", app.getClubByName)
 	// v1C.GET("/by-code/:code", app.getClubByCode)
+
+	// Token routes
+	v1Tokens.POST("/authentication", app.createAuthenticationToken)
 
 	port := fmt.Sprintf(":%d", app.config.port)
 	// srv.ListenAndServe()

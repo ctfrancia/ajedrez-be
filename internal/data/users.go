@@ -180,11 +180,57 @@ func (m UserModel) Insert(user *User) error {
 	return nil
 }
 
-func (m UserModel) GetByEmail(user *User) error {
+func (m UserModel) GetByEmail(email string) (*User, error) {
+	var user User
 	query := `
         SELECT * FROM users
         WHERE email = $1`
-	return m.DB.QueryRow(query, user.Email).Scan(
+	err := m.DB.QueryRow(query, email).Scan(
+		&user.ID,
+		&user.IsActive,
+		&user.Activated,
+		&user.IsVerified,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.SoftDeleted,
+		&user.UserCode,
+		&user.FirstName,
+		&user.LastName,
+		&user.Username,
+		&user.Password.hashed,
+		&user.PasswordResetToken,
+		&user.Email,
+		&user.Avatar,
+		&user.DateOfBirth,
+		&user.AboutMe,
+		&user.Sex,
+		&user.ClubID,
+		&user.ChessAgeCategory,
+		&user.ELOFideStandard,
+		&user.ELOFideRapid,
+		&user.ELOFideBlitz,
+		&user.ELOFideBullet,
+		&user.ELONationalStandard,
+		&user.ELONationalRapid,
+		&user.ELONationalBlitz,
+		&user.ELONationalBullet,
+		&user.ELORegionalStandard,
+		&user.ELORegionalRapid,
+		&user.ELORegionalBlitz,
+		&user.ELORegionalBullet,
+		&user.IsArbiter,
+		&user.IsCoach,
+		&user.PricePerHour,
+		&user.Currency,
+		&user.ChessComUsername,
+		&user.LichessUsername,
+		&user.Chess24Username,
+		&user.Country,
+		&user.Province,
+		&user.City,
+		&user.Neighborhood,
+		&user.Version,
+		/*j
 		&user.Email,
 		&user.Password,
 		&user.Username,
@@ -207,7 +253,10 @@ func (m UserModel) GetByEmail(user *User) error {
 		&user.ELORegionalStandard,
 		&user.ELORegionalRapid,
 		&user.Version,
+		*/
 	)
+
+	return &user, err
 }
 
 func (m UserModel) Update(nd map[string]interface{}) error {
@@ -238,10 +287,7 @@ func (m UserModel) Update(nd map[string]interface{}) error {
 	u = u.Suffix("RETURNING \"version\"")
 
 	query, args, err := u.ToSql()
-	fmt.Println("query: ", query)
-	fmt.Println("args: ", args)
 	if err != nil {
-		fmt.Println("error creating query: ", err)
 		return err
 	}
 
@@ -250,7 +296,6 @@ func (m UserModel) Update(nd map[string]interface{}) error {
 
 	err = m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Version)
 	if err != nil {
-		fmt.Println("error scanning: ", err)
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
 			return ErrDuplicateEmail

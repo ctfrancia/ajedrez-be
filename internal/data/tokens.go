@@ -11,17 +11,20 @@ import (
 )
 
 const (
-	ScopeActivation  = "activation"
-	ErrTokenRequired = "token must be provided"
-	ErrTokenTooShort = "token must be 26 bytes long"
+	ScopeActivation       = "activation"
+	ScopeAuthentication   = "authentication"
+	ErrTokenRequired      = "token must be provided"
+	ErrTokenTooShort      = "token must be 26 bytes long"
+	ErrTokenInvalid       = "invalid token"
+	ErrInvalidCredentials = "invalid credentials"
 )
 
 type Token struct {
-	Plaintext string
-	Hash      []byte
-	UserID    int64
-	Expiry    time.Time
-	Scope     string
+	Plaintext string    `json:"token"`
+	Hash      []byte    `json:"-"`
+	UserID    int64     `json:"-"`
+	Expiry    time.Time `json:"expiry"`
+	Scope     string    `json:"-"`
 }
 
 type TokenModel struct {

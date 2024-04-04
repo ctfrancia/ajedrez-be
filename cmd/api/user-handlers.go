@@ -41,7 +41,7 @@ func (app *application) createNewUser(c *gin.Context) {
 		ELORegionalBlitz    int    `json:"elo_regional_blitz"`
 		ELORegionalBullet   int    `json:"elo_regional_bullet"`
 		Email               string `json:"email"`
-		Password            string `json:"-"`
+		Password            string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
@@ -122,8 +122,8 @@ func (app *application) createNewUser(c *gin.Context) {
 func (app *application) getUserByEmail(c *gin.Context) {
 	email := c.Param("email")
 	email = strings.ToLower(email)
-	var user data.User
-	err := app.models.Users.GetByEmail(&user)
+	var user *data.User
+	user, err := app.models.Users.GetByEmail(email)
 	if err != nil {
 		apiResponse(c, http.StatusNotFound, "error", "user not found", nil)
 		return
@@ -154,7 +154,6 @@ func (app *application) updateUser(c *gin.Context) {
 
 	err = app.models.Users.Update(incommingData)
 	if err != nil {
-		fmt.Println("Error updating user: ", err)
 		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
 		return
 	}
@@ -215,7 +214,6 @@ func (app *application) activateUser(c *gin.Context) {
 			apiResponse(c, http.StatusNotFound, "error", err.Error(), nil)
 
 		default:
-			fmt.Println("Error activating user: ", err)
 			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
 		}
 		return
