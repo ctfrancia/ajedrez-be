@@ -2,7 +2,6 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
-	"fmt"
 	"net/http"
 
 	"io"

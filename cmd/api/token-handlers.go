@@ -48,5 +48,9 @@ func (app *application) createAuthenticationToken(c *gin.Context) {
 		return
 	}
 
-	apiResponse(c, http.StatusOK, "success", "token created", map[string]string{"token": token.Plaintext})
+	response := map[string]string{
+		"token":  token.Plaintext,
+		"expiry": token.Expiry.Format(time.RFC3339),
+	}
+	apiResponse(c, http.StatusOK, "success", "", response)
 }

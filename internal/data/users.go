@@ -14,12 +14,14 @@ import (
 var (
 	ErrDuplicateEmail = errors.New("duplicate email")
 	ErrEditConflict   = errors.New("edit conflict")
+	AnonymousUser     = &User{}
 )
 
 type password struct {
 	plaintext *string
 	hashed    []byte
 }
+
 type User struct {
 	ID                  int64     `json:"user_id,omitempty" db:"user_id"`
 	IsActive            bool      `json:"is_active,omitempty" db:"is_active"`
@@ -464,4 +466,9 @@ func (m UserModel) GetForToken(tokenScope, tokenPlainText string) (*User, error)
 	}
 
 	return &user, nil
+}
+
+// IsAnonymous returns true if the user is the anonymous user; otherwise false.
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
 }
