@@ -114,6 +114,7 @@ func openDB(cfg config) (*sql.DB, error) {
 func (app *application) serve() error {
 
 	r := gin.Default()
+	r.Use(app.authenticate())
 	v1U := r.Group("/v1/user")
 	v1T := r.Group("/v1/tournament")
 	v1C := r.Group("/v1/club")
