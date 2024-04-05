@@ -22,6 +22,7 @@ func (app *application) authenticate() gin.HandlerFunc {
 
 		headerParts := strings.Split(authorizationHeader, " ")
 		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+			app.invalidAuthenticationTokenResponse(c)
 			return
 		}
 
