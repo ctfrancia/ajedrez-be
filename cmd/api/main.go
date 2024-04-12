@@ -111,6 +111,7 @@ func openDB(cfg config) (*sql.DB, error) {
 	return db, nil
 }
 
+// TODO: move this to the server.go file
 func (app *application) serve() error {
 
 	r := gin.Default()
@@ -132,6 +133,7 @@ func (app *application) serve() error {
 	v1T.POST("/create", createNewTournament)
 
 	// Club routes
+	v1C.Use(app.requireActivatedUser())
 	v1C.POST("/create", app.createNewClub)
 	v1C.GET("/by-name/:name", app.getClubByName)
 	// v1C.GET("/by-code/:code", app.getClubByCode)

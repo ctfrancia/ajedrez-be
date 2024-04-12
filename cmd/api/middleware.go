@@ -3,6 +3,7 @@ package main
 import (
 	"ctfrancia/ajedrez-be/internal/data"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -45,6 +46,25 @@ func (app *application) authenticate() gin.HandlerFunc {
 		}
 
 		c.Set("user", user)
+		c.Next()
+	}
+}
+
+func (app *application) requireActivatedUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := c.MustGet("user").(*data.User)
+		fmt.Println(user)
+
+		if user.IsAnonymous() {
+			app.authenticationRequiredResponse(c)
+			return
+		}
+
+		if !user.Activated {
+			app.inactiveAccountResponse(c)
+			return
+		}
+
 		c.Next()
 	}
 }
