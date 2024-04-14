@@ -22,3 +22,15 @@ func (app *application) inactiveAccountResponse(c *gin.Context) {
 
 	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": message})
 }
+
+func (app *application) rateLimitExceededResponse(c *gin.Context) {
+	message := "rate limit exceeded"
+	c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": message})
+}
+
+func (app *application) internalServerError(c *gin.Context, message string) {
+	if message == "" {
+		message = "the server encountered an unexpected error"
+	}
+	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": message})
+}

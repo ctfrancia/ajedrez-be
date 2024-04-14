@@ -35,6 +35,11 @@ type config struct {
 		password string
 		sender   string
 	}
+	limiter struct {
+		rps     float64
+		burst   int
+		enabled bool
+	}
 }
 type application struct {
 	config config
@@ -57,6 +62,9 @@ func main() {
 	flag.StringVar(&cfg.smtp.username, "smtp-username", "7005680924ace2", "SMTP username")
 	flag.StringVar(&cfg.smtp.password, "smtp-password", "f382c81ae48622", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "MCT <no-reply@mct.es>", "SMTP sender")
+	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
+	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
+	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 	flag.Parse()
 
 	// logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -117,11 +125,12 @@ func (app *application) serve() error {
 	r := gin.Default()
 	r.Use(app.authenticate())
 	// values below are just for testing purposes - need to come from flags
-	r.Use(app.rateLimit(2, 4))
+	r.Use(app.rateLimit())
 	v1U := r.Group("/v1/user")
 	v1T := r.Group("/v1/tournament")
 	v1C := r.Group("/v1/club")
 	v1Tokens := r.Group("/v1/tokens")
+	v1Sys := r.Group("/v1/system")
 
 	// User routes
 	// v1U.GET("/all", app.getAllUsers)
@@ -142,6 +151,9 @@ func (app *application) serve() error {
 
 	// Token routes
 	v1Tokens.POST("/authentication", app.createAuthenticationToken)
+
+	// System routes
+	v1Sys.GET("/healthcheck", app.healthcheck)
 
 	port := fmt.Sprintf(":%d", app.config.port)
 	// srv.ListenAndServe()

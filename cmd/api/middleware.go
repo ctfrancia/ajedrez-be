@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
+	"net"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 )
 
 func (app *application) authenticate() gin.HandlerFunc {
@@ -83,14 +86,59 @@ func (app *application) requireActivatedUser() gin.HandlerFunc {
 	}
 }
 
-func (app *application) rateLimit(reqPerSec rate.Limit, burstReq int) gin.HandlerFunc {
-	limiter := rate.NewLimiter(reqPerSec, burstReq)
-	return func(c *gin.Context) {
-		if !limiter.Allow() {
-			apiResponse(c, http.StatusTooManyRequests, "Too many requests", "error", nil)
-			c.Abort()
-			return
+// rateLimit is a middleware function that rate limits the requests to the API based
+// on the client's IP address.
+func (app *application) rateLimit() gin.HandlerFunc {
+	type client struct {
+		limiter  *rate.Limiter
+		lastSeen time.Time
+	}
+	var (
+		mu      sync.Mutex
+		clients = make(map[string]*client)
+	)
+	go func() {
+		for {
+			time.Sleep(time.Minute)
+			// Lock the mutex to prevent any rate limiter checks from happening while
+			// the cleanup is taking place.
+			mu.Lock()
+			for ip, client := range clients {
+				if time.Since(client.lastSeen) > 3*time.Minute {
+					delete(clients, ip)
+				}
+			}
+			mu.Unlock()
 		}
+	}()
+
+	return func(c *gin.Context) {
+		if app.config.limiter.enabled {
+			ip, _, err := net.SplitHostPort(c.ClientIP())
+			if err != nil {
+				app.internalServerError(c, err.Error())
+				return
+			}
+
+			mu.Lock()
+			if _, found := clients[ip]; !found {
+				clients[ip] = &client{
+					limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps), app.config.limiter.burst),
+				}
+			}
+
+			// Update the last seen time for the client.
+			clients[ip].lastSeen = time.Now()
+
+			if !clients[ip].limiter.Allow() {
+				mu.Unlock()
+				app.rateLimitExceededResponse(c)
+				return
+			}
+
+			mu.Unlock()
+		}
+
 		c.Next()
 	}
 }
