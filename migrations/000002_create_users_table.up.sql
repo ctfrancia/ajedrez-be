@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
     avatar text NOT NULL DEFAULT '',
     dob date NOT NULL DEFAULT '1900-01-01',
     about_me text NOT NULL DEFAULT '',
+    language text NOT NULL DEFAULT 'en',
     sex text NOT NULL DEFAULT '',
 
     club_id bigint REFERENCES users, -- fk to club table

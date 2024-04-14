@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
 	"net/http"
 	"strings"
 )
@@ -50,6 +51,19 @@ func (app *application) authenticate() gin.HandlerFunc {
 	}
 }
 
+func (app *application) requireAuthenticatedUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := c.MustGet("user").(*data.User)
+
+		if user.IsAnonymous() {
+			app.authenticationRequiredResponse(c)
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func (app *application) requireActivatedUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := c.MustGet("user").(*data.User)
@@ -65,6 +79,18 @@ func (app *application) requireActivatedUser() gin.HandlerFunc {
 			return
 		}
 
+		c.Next()
+	}
+}
+
+func (app *application) rateLimit(reqPerSec rate.Limit, burstReq int) gin.HandlerFunc {
+	limiter := rate.NewLimiter(reqPerSec, burstReq)
+	return func(c *gin.Context) {
+		if !limiter.Allow() {
+			apiResponse(c, http.StatusTooManyRequests, "Too many requests", "error", nil)
+			c.Abort()
+			return
+		}
 		c.Next()
 	}
 }

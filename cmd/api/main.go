@@ -116,6 +116,8 @@ func (app *application) serve() error {
 
 	r := gin.Default()
 	r.Use(app.authenticate())
+	// values below are just for testing purposes - need to come from flags
+	r.Use(app.rateLimit(2, 4))
 	v1U := r.Group("/v1/user")
 	v1T := r.Group("/v1/tournament")
 	v1C := r.Group("/v1/club")
