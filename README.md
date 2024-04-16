@@ -4,18 +4,22 @@ back-end code for chess website
 ## Project setup
 - have Go installed
 - have a PostgreSQL database running
-    - create a database called `chess`. `psql=# CREATE DATABASE chess;`
-    - connect to the database. `psql=# \c chess`
-    - create a user called `chess` with password `che55`. `chess=# CREATE ROLE chess WITH LOGIN PASSWORD 'che55';`
-    - create extension. `CREATE EXTENSION IF NOT EXISTS citext;`
-        - extension is used for case-insensitive text
-    - make sure you can connect fine: `psql --host=localhost --dbname=chess --username=chess`
-    - to find out where your conf file is located, run `psql postgres -c 'SHOW config_file;'` or `sudo -u postgres psql -c 'SHOW config_file;'`
-        - this is for further configuration/tweaking of the file for localhost performance
+- have within your profile (.zshrc for example) a exported variable `CHESS_DB_DSN` with your Postgres connection string
+- [have go-migrate installed](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate) 
+- set up database, tables, user and extensions with:
+```bash
+make setup-dev
+```
+### NOTEs
+- if you are using a different database, you will need to change the `CHESS_DB_DSN` variable in the `Makefile` to match your database connection string
 
+- For any errors create a new issue in the repository and I will try to help you out and update README
+
+TODO: add more setup instructions for Linux and Windows
+ - especially for the migrate cli tool and other dependencies
 
 ## DB Column Explanations
-- for migrations and seeds, see `migrations/` directories (brew install golang-migrate)
+*NOTE* this is currently changing frequently as the project is in development
 
 ### clubs
 #### Description

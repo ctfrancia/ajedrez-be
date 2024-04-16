@@ -8,6 +8,48 @@ help:
 	@echo "make run-dev <...FLAGS> - Run the application in development mode"
 	@echo "		-db-dsn=<connection-string> - Set the database connection string (optional)"
 
+setup-dev:
+	@echo "====REVERTING TO CLEAN STATE===="
+	@echo "---Dropping database---"
+	psql postgres -c "DROP DATABASE IF EXISTS my_chess_website"
+	@echo "----------------------"
+
+	@echo "---Dropping user---"
+	psql postgres -c "DROP USER IF EXISTS chess_admin"
+	@echo "----------------------"
+
+	@echo "---Dropping extensions---"
+	psql postgres -c "DROP EXTENSION IF EXISTS citext"
+	psql postgres -c 'DROP EXTENSION IF EXISTS "uuid-ossp"'
+	@echo "----------------------"
+
+	@echo "---Downloading dependencies---"
+	# go mod download
+	# go mod vendor
+	@echo "----------------------"
+
+	@echo "====Setting up development environment===="
+	@echo "---Creating database---"
+	psql postgres -c "CREATE DATABASE my_chess_website"
+	@echo "----------------------"
+
+	@echo "---creating user and password---"
+	psql postgres -c "CREATE USER chess_admin WITH PASSWORD 'pa55word'"
+	@echo "----------------------"
+
+	@echo "---changing ownership of the database to user just created---"
+	psql postgres -c "ALTER DATABASE my_chess_website OWNER TO chess_admin"
+	@echo "----------------------"
+
+	@echo "creating extensions for the database with user just created"
+	psql chess_admin -d my_chess_website -c "CREATE EXTENSION IF NOT EXISTS citext"
+	psql chess_admin -d my_chess_website -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'
+	@echo "----------------------"
+
+	@echo "====Running migrations===="
+	migrate -path ./migrations -database ${CHESS_DB_DSN} up
+	@echo "==========================="
+
 run-dev: #$(db-dsn) $(port)
 	# db-dsn = $(if $(db-dsn),$(db-dsn),$(""))
 	# port = $(if $(port),$(port),"")
