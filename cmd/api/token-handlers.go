@@ -24,6 +24,7 @@ func (app *application) createAuthenticationToken(c *gin.Context) {
 		switch err {
 		case sql.ErrNoRows:
 			apiResponse(c, http.StatusNotFound, "error", "user not found", nil)
+			return
 
 		default:
 			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)

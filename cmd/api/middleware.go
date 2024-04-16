@@ -4,13 +4,14 @@ import (
 	"ctfrancia/ajedrez-be/internal/data"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/time/rate"
 	"net"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
 )
 
 func (app *application) authenticate() gin.HandlerFunc {
@@ -22,6 +23,7 @@ func (app *application) authenticate() gin.HandlerFunc {
 		if authorizationHeader == "" {
 			c.Set("user", data.AnonymousUser)
 			c.Next()
+			return
 		}
 
 		headerParts := strings.Split(authorizationHeader, " ")
@@ -144,12 +146,24 @@ func (app *application) rateLimit() gin.HandlerFunc {
 
 func (app *application) enableCORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		origin := c.MustGet("Origin").(string)
-		c.Writer.Header().Set("Vary", "Origin")
+		c.Writer.Header().Add("Vary", "Origin")
+		c.Writer.Header().Add("Vary", "Access-Control-Request-Method")
+		origin := c.Request.Header.Get("Origin")
+
 		if origin != "" {
 			for i := range app.config.cors.trustedOrigins {
 				if origin == app.config.cors.trustedOrigins[i] {
 					c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+
+					if c.Request.Method == http.MethodOptions && c.GetHeader("Access-Control-Request-Method") != "" {
+						c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+						c.Writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+						c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+						c.AbortWithStatus(http.StatusOK)
+						return
+					}
+
+					break
 				}
 			}
 		}
