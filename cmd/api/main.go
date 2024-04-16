@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -40,7 +41,11 @@ type config struct {
 		burst   int
 		enabled bool
 	}
+	cors struct {
+		trustedOrigins []string
+	}
 }
+
 type application struct {
 	config config
 	models data.Models
@@ -65,6 +70,10 @@ func main() {
 	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(val string) error {
+		cfg.cors.trustedOrigins = strings.Fields(val)
+		return nil
+	})
 	flag.Parse()
 
 	// logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -73,6 +82,8 @@ func main() {
 		// logger.Error("cannot connect to database", "error", err)
 		os.Exit(1)
 	}
+
+	println("Connected to database")
 
 	defer db.Close()
 	app := &application{
@@ -121,11 +132,11 @@ func openDB(cfg config) (*sql.DB, error) {
 
 // TODO: move this to the server.go file
 func (app *application) serve() error {
-
 	r := gin.Default()
-	r.Use(app.authenticate())
-	// values below are just for testing purposes - need to come from flags
+
 	r.Use(app.rateLimit())
+	r.Use(app.authenticate())
+	r.Use(app.enableCORS())
 	v1U := r.Group("/v1/user")
 	v1T := r.Group("/v1/tournament")
 	v1C := r.Group("/v1/club")
@@ -144,6 +155,7 @@ func (app *application) serve() error {
 	v1T.POST("/create", createNewTournament)
 
 	// Club routes
+	// TODO: the middleware below is just for POC, it should be removed
 	v1C.Use(app.requireActivatedUser())
 	v1C.POST("/create", app.createNewClub)
 	v1C.GET("/by-name/:name", app.getClubByName)
@@ -196,8 +208,6 @@ func (app *application) serve() error {
 		shutdownError <- nil
 	}()
 
-	// app.logger.Info("starting server", "addr", srv.Addr, "env", app.config.env)
-
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
 		return err
@@ -207,8 +217,6 @@ func (app *application) serve() error {
 	if err != nil {
 		return err
 	}
-
-	// app.logger.Info("stopped server", "addr", srv.Addr)
 
 	return nil
 }

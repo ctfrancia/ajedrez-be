@@ -22,7 +22,6 @@ func (app *application) authenticate() gin.HandlerFunc {
 		if authorizationHeader == "" {
 			c.Set("user", data.AnonymousUser)
 			c.Next()
-			return
 		}
 
 		headerParts := strings.Split(authorizationHeader, " ")
@@ -137,6 +136,22 @@ func (app *application) rateLimit() gin.HandlerFunc {
 			}
 
 			mu.Unlock()
+		}
+
+		c.Next()
+	}
+}
+
+func (app *application) enableCORS() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		origin := c.MustGet("Origin").(string)
+		c.Writer.Header().Set("Vary", "Origin")
+		if origin != "" {
+			for i := range app.config.cors.trustedOrigins {
+				if origin == app.config.cors.trustedOrigins[i] {
+					c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+				}
+			}
 		}
 
 		c.Next()
