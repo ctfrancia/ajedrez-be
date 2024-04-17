@@ -5,13 +5,16 @@ import (
 	"ctfrancia/ajedrez-be/internal/data"
 	"ctfrancia/ajedrez-be/internal/mailer"
 	"database/sql"
+	"expvar"
 	"flag"
-	_ "github.com/lib/pq"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 type config struct {
@@ -81,6 +84,23 @@ func main() {
 	println("Connected to database")
 
 	defer db.Close()
+
+	expvar.NewString("version").Set(version)
+	// Publish the number of active goroutines.
+	expvar.Publish("goroutines", expvar.Func(func() any {
+		return runtime.NumGoroutine()
+	}))
+
+	// Publish the database connection pool statistics.
+	expvar.Publish("database", expvar.Func(func() any {
+		return db.Stats()
+	}))
+
+	// Publish the current Unix timestamp.
+	expvar.Publish("timestamp", expvar.Func(func() any {
+		return time.Now().Unix()
+	}))
+
 	app := &application{
 		config: cfg,
 		models: data.NewModels(db),

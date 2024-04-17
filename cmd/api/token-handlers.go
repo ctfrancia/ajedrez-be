@@ -23,11 +23,11 @@ func (app *application) createAuthenticationToken(c *gin.Context) {
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			apiResponse(c, http.StatusNotFound, "error", "user not found", nil)
+			app.notFoundResponse(c)
 			return
 
 		default:
-			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
+			app.internalServerError(c, "")
 			return
 		}
 	}

@@ -1,12 +1,14 @@
 package main
 
 import (
+	"github.com/gin-contrib/expvar"
 	"github.com/gin-gonic/gin"
 )
 
 func (app *application) routes() *gin.Engine {
 	r := gin.Default()
 
+	r.Use(app.metrics())
 	r.Use(app.enableCORS())
 	r.Use(app.rateLimit())
 	r.Use(app.authenticate())
@@ -20,7 +22,7 @@ func (app *application) routes() *gin.Engine {
 	// v1U.GET("/all", app.getAllUsers)
 	v1U.POST("/create", app.createNewUser)
 	v1U.GET("/:email", app.getUserByEmail)
-	v1U.PUT("/update/", app.updateUser)
+	v1U.PUT("/update", app.updateUser)
 	v1U.DELETE("/delete/:email", app.deleteUser)
 	v1U.PUT("/activated", app.activateUser)
 
@@ -29,7 +31,7 @@ func (app *application) routes() *gin.Engine {
 
 	// Club routes
 	// TODO: the middleware below is just for POC, it should be removed
-	v1C.Use(app.requireActivatedUser())
+	// v1C.Use(app.requireActivatedUser())
 	v1C.POST("/create", app.createNewClub)
 	v1C.GET("/by-name/:name", app.getClubByName)
 	// v1C.GET("/by-code/:code", app.getClubByCode)
@@ -39,6 +41,8 @@ func (app *application) routes() *gin.Engine {
 
 	// System routes
 	v1Sys.GET("/healthcheck", app.healthcheck)
+	// v1Sys.GET("/version", app.version)
+	v1Sys.GET("/debug/vars", expvar.Handler())
 
 	return r
 }

@@ -28,6 +28,12 @@ func (app *application) rateLimitExceededResponse(c *gin.Context) {
 	c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": message})
 }
 
+func (app *application) notFoundResponse(c *gin.Context) {
+	message := "the requested resource could not be found"
+	c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": message})
+	return
+}
+
 func (app *application) internalServerError(c *gin.Context, message string) {
 	if message == "" {
 		message = "the server encountered an unexpected error"
