@@ -83,6 +83,8 @@ func (app *application) createNewUser(c *gin.Context) {
 
 	err = app.models.Users.Insert(&cnu)
 	if err != nil {
+
+		println("here", err.Error(), cnu.Email)
 		switch {
 		case errors.Is(err, data.ErrDuplicateEmail):
 			apiResponse(c, http.StatusBadRequest, "error", "email exists", cnu)

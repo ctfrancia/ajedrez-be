@@ -135,6 +135,7 @@ type UserRequestBody struct {
 	EloNationalRapid    int    `json:"elo_national_rapid"`
 	EloRegionalStandard int    `json:"elo_regional_standard"`
 	EloRegionalRapid    int    `json:"elo_regional_rapid"`
+	Email               string `json:"email"`
 }
 
 type ClubRequestBody struct {
@@ -181,8 +182,9 @@ func migrateJSONPlayers(path string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, ld := range pd.Source.LocalData {
+	for i, ld := range pd.Source.LocalData {
 		name := strings.Split(ld.FullName, ",")
+		email := fmt.Sprintf("%d@gmail.com", i)
 		fname := name[1]
 		lname := name[0]
 		playerCode, _ := strconv.Atoi(ld.IdPlayer)
@@ -209,6 +211,7 @@ func migrateJSONPlayers(path string) error {
 			ClubUserCode:        fmt.Sprintf("%d-%d", ClubCode, playerCode),
 			Country:             "Spain",
 			ClubID:              ClubCode,
+			Email:               email,
 		}
 		if err := postUser(user); err != nil {
 			fmt.Println("Error: ", user)
@@ -307,6 +310,8 @@ func processUsers(data [][]string) []CSVUser {
 func Migrate(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
+		path, _ := os.Getwd()
+		fmt.Println("wd: ", path)
 		log.Fatal(err)
 	}
 	defer file.Close()

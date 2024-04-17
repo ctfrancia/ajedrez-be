@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     is_open boolean NOT NULL DEFAULT FALSE,
     is_invitational boolean NOT NULL DEFAULT FALSE,
 
-    code text NOT NULL DEFAULT generate_uuid_v4(),
+    code text NOT NULL DEFAULT uuid_generate_v1(),
     name text NOT NULL,
     start_date timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     end_date timestamp(0) with time zone NOT NULL DEFAULT NOW(),

@@ -6,7 +6,7 @@ import (
 )
 
 type Club struct {
-	ClubID       int          `json:"club_id,omitempty" db:"club_id"`
+	ClubID       int          `json:"club_id,omitempty" db:"id"`
 	IsActive     bool         `json:"is_active,omitempty" db:"is_active"`
 	CreatedAt    sql.NullTime `json:"created_at,omitempty" db:"created_at"`
 	DeletedAt    sql.NullTime `json:"deleted_at,omitempty" db:"deleted_at,omitempty"`
@@ -35,7 +35,7 @@ func (m ClubModel) Insert(club *Club) error {
             city
         )
         VALUES ($1, $2, $3, $4, $5)
-        RETURNING club_id, code, created_at`
+        RETURNING id, code, created_at`
 	args := []interface{}{
 		club.Code,
 		club.Club,

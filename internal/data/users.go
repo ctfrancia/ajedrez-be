@@ -23,7 +23,7 @@ type password struct {
 }
 
 type User struct {
-	ID                  int64     `json:"user_id,omitempty" db:"user_id"`
+	ID                  int64     `json:"user_id,omitempty" db:"id"`
 	IsActive            bool      `json:"is_active,omitempty" db:"is_active"`
 	Activated           bool      `json:"is_activated,omitempty" db:"is_activated"`
 	IsVerified          bool      `json:"is_verified,omitempty" db:"is_verified"`
@@ -122,7 +122,7 @@ func (m UserModel) Insert(user *User) error {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
         $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
         $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)
-        RETURNING user_id, created_at, user_code`
+        RETURNING id, created_at, user_code`
 
 	args := []any{
 		user.IsActive,

@@ -50,6 +50,11 @@ setup-dev:
 	migrate -path ./migrations -database ${CHESS_DB_DSN} up
 	@echo "==========================="
 
+	@echo "====Running seeds===="
+	#ago run ./cmd/api/ -limiter-enabled=false;
+	# go run ./cmd/seeds/...
+	@echo "====================="
+
 run-dev: #$(db-dsn) $(port)
 	# db-dsn = $(if $(db-dsn),$(db-dsn),$(""))
 	# port = $(if $(port),$(port),"")
