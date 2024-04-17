@@ -1,0 +1,51 @@
+{
+    "id": 100,
+    "name": "cool tournament",
+    "host": 1,
+    "poster": "<FTP_LINK_TO_POSTER>",
+    "country": "Spain",
+    "province": "Barcelona",
+    "city": "Barcelona",
+    "address": "123 main st.",
+    "neightborhood": "neightborhood",
+    "is_valid_fide_elo": false,
+    "is_valid_national_elo": false,
+    "is_valid_regional_elo": true,
+    "start_date": "2024-04-17T11:01:40+00:00",
+    "end_date": "2024-04-20T11:01:40+00:00",
+    "registration_start_date": "2024-04-17T11:01:40+00:00",
+    "registration_end_date": "2024-04-20T11:01:40+00:00",
+    "max_players": 100,
+    "max_teams": 10,
+    "max_team_players": 5,
+    "min_players": 10,
+    "min_teams": 1,
+    "min_team_players": 1,
+    "rounds": 5,
+    "pairing_system": "swiss",
+    "tie_breaks": [
+        "buchholz",
+        "median-buchholz",
+        "sonneborn-berger",
+        "progressive",
+        "direct_encounter"
+    ],
+    "time_control": "5+0",
+    "description": "super fun tournament with cool prizes",
+    "prizes": "1. 1000 EUR\n2. 500 EUR\n3. 250 EUR",
+    "rules": "<FTP_LINK_TO_RULES>",
+    "registration_fee_members": 10,
+    "registration_fee_public": 10,
+    "currency": "EUR",
+    "status": "active",
+    "players": [
+        1,
+        2,
+        3
+    ],
+    "teams": [
+        1,
+        2,
+        3
+    ]
+}

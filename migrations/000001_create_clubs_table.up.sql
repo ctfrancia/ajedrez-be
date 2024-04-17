@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS clubs (
-    club_id bigserial PRIMARY KEY,
+    id bigserial PRIMARY KEY,
     is_active boolean NOT NULL DEFAULT TRUE,
     is_verified boolean NOT NULL DEFAULT FALSE,
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),

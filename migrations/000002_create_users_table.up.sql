@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS users (
-    user_id bigserial PRIMARY KEY,
+    id bigserial PRIMARY KEY,
     is_active boolean NOT NULL DEFAULT FALSE,
     activated boolean NOT NULL DEFAULT FALSE,
     is_verified boolean NOT NULL DEFAULT FALSE,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
     language text NOT NULL DEFAULT 'en',
     sex text NOT NULL DEFAULT '',
 
-    club_id bigint REFERENCES users, -- fk to club table
+    club_id bigint, -- fk to club table
     chess_age_category text NOT NULL DEFAULT '',
 
     elo_fide_standard integer NOT NULL DEFAULT 1200,
