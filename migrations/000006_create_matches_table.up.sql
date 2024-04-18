@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS matches (
     round INTEGER,
 
     pgn TEXT,
+
+    version INTEGER NOT NULL DEFAULT 1,
     FOREIGN KEY (tournament_id) REFERENCES tournaments (id),
     FOREIGN KEY (player1_id) REFERENCES users (id),
     FOREIGN KEY (player2_id) REFERENCES users (id),

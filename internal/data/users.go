@@ -22,6 +22,7 @@ type password struct {
 	hashed    []byte
 }
 
+// User represents a user account in the database.
 type User struct {
 	ID                  int64     `json:"user_id,omitempty" db:"id"`
 	IsActive            bool      `json:"is_active,omitempty" db:"is_active"`

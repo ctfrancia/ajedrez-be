@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     country TEXT NOT NULL DEFAULT '',
     province TEXT NOT NULL DEFAULT '',
     city TEXT NOT NULL DEFAULT '',
-    address TEXT NOT NULL,
+    address TEXT NOT NULL DEFAULT '',
     observations TEXT NOT NULL DEFAULT '',
 
     players BIGINT[] NOT NULL DEFAULT '{}',
