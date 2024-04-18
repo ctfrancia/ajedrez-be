@@ -17,6 +17,7 @@ func (app *application) routes() *gin.Engine {
 	v1C := r.Group("/v1/club")
 	v1Tokens := r.Group("/v1/tokens")
 	v1Sys := r.Group("/v1/system")
+	v1Pw := r.Group("/v1/password")
 
 	// User routes
 	// v1U.GET("/all", app.getAllUsers)
@@ -25,6 +26,9 @@ func (app *application) routes() *gin.Engine {
 	v1U.PUT("/update", app.updateUser)
 	v1U.DELETE("/delete/:email", app.deleteUser)
 	v1U.PUT("/activated", app.activateUser)
+
+	// Password routes
+	v1Pw.POST("/check", app.pwCheck)
 
 	// Tournament routes
 	v1T.POST("/create", createNewTournament)
