@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"errors"
-	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -24,7 +23,7 @@ type password struct {
 
 // User represents a user account in the database.
 type User struct {
-	ID                  int64     `json:"user_id,omitempty" db:"id"`
+	ID                  int64     `json:"id,omitempty" db:"id"`
 	IsActive            bool      `json:"is_active,omitempty" db:"is_active"`
 	Activated           bool      `json:"is_activated,omitempty" db:"is_activated"`
 	IsVerified          bool      `json:"is_verified,omitempty" db:"is_verified"`
@@ -36,22 +35,26 @@ type User struct {
 	LastName            string    `json:"last_name,omitempty" binding:"required" db:"last_name"`
 	Username            string    `json:"username,omitempty" db:"username"`
 	Password            password  `json:"-" db:"password"`
-	PasswordResetToken  string    `json:"password_reset_token,omitempty" db:"password_reset_token"`
+	PasswordResetToken  string    `json:"-" db:"password_reset_token"`
 	Email               string    `json:"email,omitempty" db:"email"`
 	Avatar              string    `json:"avatar,omitempty" db:"avatar"`
 	DateOfBirth         time.Time `json:"date_of_birth,omitempty" db:"dob"`
 	AboutMe             string    `json:"about_me,omitempty" db:"about_me"`
+	Language            string    `json:"language,omitempty" db:"language"`
 	Sex                 string    `json:"sex,omitempty" db:"sex"`
-	ClubID              int       `json:"club_id,-" db:"club_id"`
+	ClubID              int       `json:"club_id,omitempty" db:"club_id"`
 	ChessAgeCategory    string    `json:"chess_age_category,omitempty" db:"chess_age_category"`
+	FideTitle           string    `json:"fide_title,omitempty" db:"fide_title"`
 	ELOFideStandard     int       `json:"elo_fide_standard,omitempty" db:"elo_fide_standard"`
 	ELOFideRapid        int       `json:"elo_fide_rapid,omitempty" db:"elo_fide_rapid"`
 	ELOFideBlitz        int       `json:"elo_fide_blitz,omitempty" db:"elo_fide_blitz"`
 	ELOFideBullet       int       `json:"elo_fide_bullet,omitempty" db:"elo_fide_bullet"`
+	NationalTitle       string    `json:"national_title,omitempty" db:"national_title"`
 	ELONationalStandard int       `json:"elo_national_standard,omitempty" db:"elo_national_standard"`
 	ELONationalRapid    int       `json:"elo_national_rapid,omitempty" db:"elo_national_rapid"`
 	ELONationalBlitz    int       `json:"elo_national_blitz,omitempty" db:"elo_national_blitz"`
 	ELONationalBullet   int       `json:"elo_national_bullet,omitempty" db:"elo_national_bullet"`
+	RegionalTitle       string    `json:"regional_title,omitempty" db:"regional_title"`
 	ELORegionalStandard int       `json:"elo_regional_standard,omitempty" db:"elo_regional_standard"`
 	ELORegionalRapid    int       `json:"elo_regional_rapid,omitempty" db:"elo_regional_rapid"`
 	ELORegionalBlitz    int       `json:"elo_regional_blitz,omitempty" db:"elo_regional_blitz"`
@@ -78,95 +81,27 @@ func (m UserModel) Insert(user *User) error {
 	timeNow := time.Now()
 	query := `
         INSERT INTO users (
-            is_active,
-            is_verified,
             created_at,
             updated_at,
-            soft_deleted,
             user_code,
             first_name,
             last_name,
-            username,
-            password,
-            password_reset_token,
             email,
-            avatar,
-            dob,
-            about_me,
-            sex,
-            club_id,
-            chess_age_category,
-            elo_fide_standard,
-            elo_fide_rapid,
-            elo_fide_blitz,
-            elo_fide_bullet,
-            elo_national_standard,
-            elo_national_rapid,
-            elo_national_blitz,
-            elo_national_bullet,
-            elo_regional_standard,
-            elo_regional_rapid,
-            elo_regional_blitz,
-            elo_regional_bullet,
-            is_arbiter,
-            is_coach,
-            price_per_hour,
-            currency,
-            chess_com_username,
-            lichess_username,
-            chess24_username,
-            country,
-            province,
-            city,
-            neighborhood
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-        $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-        $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)
-        RETURNING id, created_at, user_code`
+            password,
+            language
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id, created_at, user_code
+    `
 
 	args := []any{
-		user.IsActive,
-		user.IsVerified,
-		timeNow,
-		timeNow,
-		user.SoftDeleted,
-		user.UserCode,
+		timeNow,       // created_at
+		timeNow,       // updated_at
+		user.UserCode, // uuid
 		user.FirstName,
 		user.LastName,
-		user.Username,
-		user.Password.hashed,
-		user.PasswordResetToken,
 		user.Email,
-		user.Avatar,
-		user.DateOfBirth,
-		user.AboutMe,
-		user.Sex,
-		user.ClubID,
-		user.ChessAgeCategory,
-		user.ELOFideStandard,
-		user.ELOFideRapid,
-		user.ELOFideBlitz,
-		user.ELOFideBullet,
-		user.ELONationalStandard,
-		user.ELONationalRapid,
-		user.ELONationalBlitz,
-		user.ELONationalBullet,
-		user.ELORegionalStandard,
-		user.ELORegionalRapid,
-		user.ELORegionalBlitz,
-		user.ELORegionalBullet,
-		user.IsArbiter,
-		user.IsCoach,
-		user.PricePerHour,
-		user.Currency,
-		user.ChessComUsername,
-		user.LichessUsername,
-		user.Chess24Username,
-		user.Country,
-		user.Province,
-		user.City,
-		user.Neighborhood,
+		user.Password.hashed,
+		user.Language,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -278,11 +213,12 @@ func (m UserModel) Update(nd map[string]interface{}) error {
 	u = u.Set("version", sq.Expr("version + 1"))
 
 	// Creating Where clause based on what's coming in the map
+	// default is email
 	switch {
 	case nd["user_code"] != nil:
 		u = u.Where(sq.Eq{"user_code": nd["user_code"]})
-	case nd["user_id"] != nil:
-		u = u.Where(sq.Eq{"user_id": nd["user_id"]})
+	case nd["id"] != nil:
+		u = u.Where(sq.Eq{"id": nd["id"]})
 	default:
 		u = u.Where(sq.Eq{"email": nd["email"]})
 	}
@@ -293,6 +229,8 @@ func (m UserModel) Update(nd map[string]interface{}) error {
 	if err != nil {
 		return err
 	}
+
+	println(query, args)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -322,7 +260,6 @@ func (m UserModel) Delete(email string) error {
 
 func (m UserModel) GetByUserCode(code string) (*User, error) {
 	var u User
-	fmt.Printf("newData that's coming in: %#v", code)
 	query := `
     SELECT
         is_active,
@@ -433,10 +370,10 @@ func (m UserModel) GetForToken(tokenScope, tokenPlainText string) (*User, error)
 	tokenHash := sha256.Sum256([]byte(tokenPlainText))
 
 	query := `
-        SELECT users.user_id, users.created_at, users.last_name, users.email, users.password, users.activated, users.version
+        SELECT users.id, users.created_at, users.last_name, users.email, users.password, users.activated, users.version
         FROM users
         INNER JOIN tokens
-        ON users.user_id = tokens.user_id
+        ON users.id = tokens.user_id
         WHERE tokens.hash = $1
         AND tokens.scope = $2 
         AND tokens.expiry > $3`

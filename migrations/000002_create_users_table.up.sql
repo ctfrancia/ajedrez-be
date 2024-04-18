@@ -1,16 +1,16 @@
 CREATE TABLE IF NOT EXISTS users (
     id bigserial PRIMARY KEY,
-    is_active boolean NOT NULL DEFAULT FALSE,
-    activated boolean NOT NULL DEFAULT FALSE,
+    is_active boolean NOT NULL DEFAULT FALSE, -- user is active or not
+    activated boolean NOT NULL DEFAULT FALSE, -- user verified email address
     is_verified boolean NOT NULL DEFAULT FALSE,
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
-    soft_deleted bool NOT NULL DEFAULT FALSE,
+    soft_deleted bool NOT NULL DEFAULT FALSE, -- user deleted their acct
 
     user_code text NOT NULL DEFAULT uuid_generate_v1(),
-    first_name text NOT NULL DEFAULT '',
-    last_name text NOT NULL DEFAULT '',
-    username text NOT NULL DEFAULT '',
+    first_name citext NOT NULL DEFAULT '',
+    last_name citext NOT NULL DEFAULT '',
+    username citext NOT NULL DEFAULT '',
     password bytea NOT NULL DEFAULT '',
     password_reset_token text NOT NULL DEFAULT '',
     email citext NOT NULL DEFAULT '',
@@ -23,16 +23,19 @@ CREATE TABLE IF NOT EXISTS users (
     club_id bigint, -- fk to club table
     chess_age_category text NOT NULL DEFAULT '',
 
+    fide_title text NOT NULL DEFAULT '',
     elo_fide_standard integer NOT NULL DEFAULT 1200,
     elo_fide_rapid integer NOT NULL DEFAULT 1200,
     elo_fide_blitz integer NOT NULL DEFAULT 1200,
     elo_fide_bullet integer NOT NULL DEFAULT 1200,
 
+    national_title text NOT NULL DEFAULT '',
     elo_national_standard integer NOT NULL DEFAULT 1200,
     elo_national_rapid integer NOT NULL DEFAULT 1200,
     elo_national_blitz integer NOT NULL DEFAULT 1200,
     elo_national_bullet integer NOT NULL DEFAULT 1200,
 
+    regional_title text NOT NULL DEFAULT '',
     elo_regional_standard integer NOT NULL DEFAULT 1200,
     elo_regional_rapid integer NOT NULL DEFAULT 1200,
     elo_regional_blitz integer NOT NULL DEFAULT 1200,
@@ -51,5 +54,5 @@ CREATE TABLE IF NOT EXISTS users (
     city text NOT NULL DEFAULT '',
     neighborhood text NOT NULL DEFAULT '',
 
-    version integer NOT NULL DEFAULT 0
+    version integer NOT NULL DEFAULT 1
 );

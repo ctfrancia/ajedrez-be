@@ -1,1 +1,47 @@
-{{}}
+{{define "subject"}}Bienvenid@ a My Chess Tournaments!{{end}}
+
+{{define "plainBody"}}
+Hola,
+
+Gracias por registrarte en My Chess Tournaments!
+
+Para futura referencia, tu número de usuario es {{.userID}}.
+
+Por favor envía una solicitud al endpoint `PUT /v1/user/activated` con el siguiente JSON
+body para activar tu cuenta:
+
+{"token": "{{.activationToken}}"}
+
+Por favor ten en cuenta que este es un token de un solo uso y expirará en 3 días.
+
+Gracias,
+
+El equopo de My Chess Tournaments
+{{end}}
+
+{{define "htmlBody"}}
+<!doctype html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body>
+    <p>Hi,</p>
+    <p> Gracias por registrarte en My Chess Tournaments!</p>
+
+    <p>Para futura referencia, tu número de usuario es {{.userID}}.</p>
+    <p>Por favor envía una solicitud al endpoint `PUT /v1/user/activated` con el siguiente JSON
+    body para activar tu cuenta:</p>
+    <pre><code>
+    {"token": "{{.activationToken}}"}
+    </code></pre>
+    <p>Por favor ten en cuenta que este es un token de un solo uso y expirará en 3 días.</p>
+    <p>Gracias,</p>
+    <p>El equipo de My Chess Tournaments</p>
+</body>
+
+</html>
+{{end}}

@@ -16,56 +16,22 @@ import (
 )
 
 func (app *application) createNewUser(c *gin.Context) {
-	// TODO: move this to public dto
 	var input struct {
-		FirstName        string    `json:"first_name"`
-		LastName         string    `json:"last_name"`
-		DateOfBirth      time.Time `json:"date_of_birth"`
-		Sex              string    `json:"sex"`
-		ClubID           int       `json:"club_id"`
-		ChessAgeCategory string    `json:"chess_age_category"`
-
-		ELOFideStandard int `json:"elo_fide_standard"`
-		ELOFideRapid    int `json:"elo_fide_rapid"`
-		ELOFideBlitz    int `json:"elo_fide_blitz"`
-		ELOFideBullet   int `json:"elo_fide_bullet"`
-
-		ELONationalStandard int `json:"elo_national_standard"`
-		ELONationalRapid    int `json:"elo_national_rapid"`
-		ELONationalBlitz    int `json:"elo_national_blitz"`
-		ELONationalBullet   int `json:"elo_national_bullet"`
-
-		ELORegionalStandard int    `json:"elo_regional_standard"`
-		ELORegionalRapid    int    `json:"elo_regional_rapid"`
-		ELORegionalBlitz    int    `json:"elo_regional_blitz"`
-		ELORegionalBullet   int    `json:"elo_regional_bullet"`
-		Email               string `json:"email"`
-		Password            string `json:"password"`
+		FirstName string `json:"first_name" binding:"required"`
+		LastName  string `json:"last_name"  binding:"required"`
+		Email     string `json:"email"      binding:"required"`
+		Password  string `json:"password"   binding:"required"`
+		Language  string `json:"language"   binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
 		return
 	}
 	cnu := data.User{
-		FirstName:           input.FirstName,
-		LastName:            input.LastName,
-		DateOfBirth:         input.DateOfBirth,
-		Sex:                 input.Sex,
-		ClubID:              input.ClubID,
-		ChessAgeCategory:    input.ChessAgeCategory,
-		ELOFideStandard:     input.ELOFideStandard,
-		ELOFideRapid:        input.ELOFideRapid,
-		ELOFideBlitz:        input.ELOFideBlitz,
-		ELOFideBullet:       input.ELOFideBullet,
-		ELONationalStandard: input.ELONationalStandard,
-		ELONationalRapid:    input.ELONationalRapid,
-		ELONationalBlitz:    input.ELONationalBlitz,
-		ELONationalBullet:   input.ELONationalBullet,
-		ELORegionalStandard: input.ELORegionalStandard,
-		ELORegionalRapid:    input.ELORegionalRapid,
-		ELORegionalBlitz:    input.ELORegionalBlitz,
-		ELORegionalBullet:   input.ELORegionalBullet,
-		Email:               input.Email,
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Email:     input.Email,
+		Language:  input.Language,
 	}
 
 	// normalize user data before inserting into the database
@@ -73,11 +39,10 @@ func (app *application) createNewUser(c *gin.Context) {
 
 	// create user's unique code
 	cnu.UserCode = uuid.New().String()
-	// cnu.Password.plainText = cnu.Password
 
 	err := cnu.Password.Set(input.Password)
 	if err != nil {
-		apiResponse(c, http.StatusBadRequest, "error", err.Error(), cnu)
+		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
 		return
 	}
 
@@ -87,12 +52,16 @@ func (app *application) createNewUser(c *gin.Context) {
 		println("here", err.Error(), cnu.Email)
 		switch {
 		case errors.Is(err, data.ErrDuplicateEmail):
-			apiResponse(c, http.StatusBadRequest, "error", "email exists", cnu)
+			resp := map[string]interface{}{
+				"email": cnu.Email,
+			}
+			apiResponse(c, http.StatusBadRequest, "error", "email exists", resp)
 		default:
-			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), cnu)
+			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), input)
 		}
 		return
 	}
+
 	// After the user record has been created in the database, generate a new activation
 	// token for the user.
 	token, err := app.models.Tokens.New(cnu.ID, 3*24*time.Hour, data.ScopeActivation)
@@ -101,8 +70,6 @@ func (app *application) createNewUser(c *gin.Context) {
 		return
 	}
 
-	// launch go routine to send welcome email in the background
-	// this lowers latency of the API response
 	app.background(func() {
 		data := map[string]any{
 			"activationToken": token.Plaintext,
@@ -117,7 +84,10 @@ func (app *application) createNewUser(c *gin.Context) {
 		}
 	})
 
-	apiResponse(c, http.StatusAccepted, "success", "user created", cnu)
+	resp := map[string]interface{}{
+		"user_code": cnu.UserCode,
+	}
+	apiResponse(c, http.StatusCreated, "success", "user created", resp)
 }
 
 func (app *application) getUserByEmail(c *gin.Context) {
@@ -201,7 +171,7 @@ func (app *application) activateUser(c *gin.Context) {
 	}
 
 	u := map[string]interface{}{
-		"user_id":   user.ID,
+		"id":        user.ID,
 		"activated": true,
 	}
 
