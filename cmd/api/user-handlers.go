@@ -32,13 +32,11 @@ func (app *application) createNewUser(c *gin.Context) {
 		LastName:  input.LastName,
 		Email:     input.Email,
 		Language:  input.Language,
+		UserCode:  uuid.New().String(),
 	}
 
 	// normalize user data before inserting into the database
 	normalizeUser(&cnu)
-
-	// create user's unique code
-	cnu.UserCode = uuid.New().String()
 
 	err := cnu.Password.Set(input.Password)
 	if err != nil {

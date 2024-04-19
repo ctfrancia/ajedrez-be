@@ -39,3 +39,7 @@ func (app *application) internalServerError(c *gin.Context, message string) {
 	}
 	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": message})
 }
+
+func (app *application) badRequestResponse(c *gin.Context, message string, data interface{}) {
+	c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": message, "data": data})
+}

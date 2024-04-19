@@ -14,17 +14,19 @@ var (
 // Create a Models struct which wraps the UserModel. We'll add other models to this,
 // like a UserModel and PermissionModel, as our build progresses.
 type Models struct {
-	Users  UserModel
-	Clubs  ClubModel
-	Tokens TokenModel
+	Users       UserModel
+	Clubs       ClubModel
+	Tokens      TokenModel
+	Tournaments TournamentModel
 }
 
 // For ease of use, we also add a New() method which returns a Models struct containing
 // the initialized models.
 func NewModels(db *sql.DB) Models {
 	return Models{
-		Users:  UserModel{DB: db},
-		Clubs:  ClubModel{DB: db},
-		Tokens: TokenModel{DB: db},
+		Users:       UserModel{DB: db},
+		Clubs:       ClubModel{DB: db},
+		Tokens:      TokenModel{DB: db},
+		Tournaments: TournamentModel{DB: db},
 	}
 }

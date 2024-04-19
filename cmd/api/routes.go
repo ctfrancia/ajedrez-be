@@ -31,7 +31,7 @@ func (app *application) routes() *gin.Engine {
 	v1Pw.POST("/check", app.pwCheck)
 
 	// Tournament routes
-	v1T.POST("/create", createNewTournament)
+	v1T.POST("/create", app.createNewTournament)
 
 	// Club routes
 	// TODO: the middleware below is just for POC, it should be removed
