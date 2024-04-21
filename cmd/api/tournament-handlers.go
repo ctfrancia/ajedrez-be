@@ -2,8 +2,10 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"io"
 	"net/http"
 )
 
@@ -50,6 +52,24 @@ func (app *application) getTournaments(c *gin.Context) {
 }
 
 func (app *application) updateTournament(c *gin.Context) {
+	var input map[string]interface{}
+	jsonData, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
+		return
+	}
+
+	json.Unmarshal(jsonData, &input)
+	if _, ok := input["code"]; !ok {
+		apiResponse(c, http.StatusBadRequest, "error", "code is required", input)
+		return
+	}
+
+	_, err = uuid.Parse(input["code"].(string))
+	if err != nil {
+		apiResponse(c, http.StatusBadRequest, "error", "invalid tournament code", input)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "pong",
 	})
