@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	sq "github.com/Masterminds/squirrel"
 	"time"
 )
 
@@ -11,7 +12,7 @@ type Tournament struct {
 	IsActive              bool          `json:"is_active" db:"is_active"`
 	IsVerified            bool          `json:"is_verified" db:"is_verified"`
 	CreatedAt             time.Time     `json:"created_at" db:"created_at"`
-	UpdatedAt             time.Time     `json:"updated_at" db:"updated_at"`
+	UpdatedAt             time.Time     `json:"-" db:"updated_at"`
 	UpdatedBy             sql.NullInt64 `json:"-" db:"updated_by"`
 	DeletedAt             sql.NullTime  `json:"-" db:"deleted_at"`
 	IsDeleted             bool          `json:"is_deleted,omitempty" db:"is_deleted"`
@@ -96,6 +97,38 @@ func (m TournamentModel) Insert(t *Tournament) error {
 
 	if t.Dates == nil {
 		t.Dates = []time.Time{}
+	}
+
+	return nil
+}
+
+func (m TournamentModel) Update(nt map[string]interface{}) error {
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	t := &Tournament{}
+	qs := psql.Update("tournaments")
+	now := time.Now()
+	for key, value := range nt {
+		if key == "code" {
+			continue
+		}
+		qs = qs.Set(key, value)
+	}
+	qs = qs.Set("updated_at", now)
+	qs = qs.Set("version", sq.Expr("version + 1"))
+	qs = qs.Where(sq.Eq{"code": nt["code"]})
+	qs = qs.Suffix("RETURNING updated_at")
+
+	query, args, err := qs.ToSql()
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err = m.DB.QueryRowContext(ctx, query, args...).Scan(&t.UpdatedAt)
+	if err != nil {
+		return err
 	}
 
 	return nil

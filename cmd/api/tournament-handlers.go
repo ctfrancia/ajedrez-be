@@ -2,10 +2,11 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
-	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"io"
+	// "io"
+	"encoding/json"
 	"net/http"
 )
 
@@ -19,6 +20,7 @@ func (app *application) createNewTournament(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("Creating new tournament", input)
 	tCode := uuid.New().String()
 	t := data.Tournament{
 		Name: input.Name,
@@ -31,11 +33,8 @@ func (app *application) createNewTournament(c *gin.Context) {
 		return
 	}
 
-	c.Writer.Header().Set("Location", "/tournaments/"+tCode)
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "no errors",
-		"data":    t,
-	})
+	c.Writer.Header().Set("Location", "/tournament/"+tCode)
+	apiResponse(c, http.StatusCreated, "success", "", t)
 }
 
 func (app *application) getTournament(c *gin.Context) {
@@ -53,26 +52,42 @@ func (app *application) getTournaments(c *gin.Context) {
 
 func (app *application) updateTournament(c *gin.Context) {
 	var input map[string]interface{}
-	jsonData, err := io.ReadAll(c.Request.Body)
-	if err != nil {
+	var t data.Tournament
+	dec := json.NewDecoder(c.Request.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&t); err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
 		return
 	}
 
-	json.Unmarshal(jsonData, &input)
-	if _, ok := input["code"]; !ok {
-		apiResponse(c, http.StatusBadRequest, "error", "code is required", input)
-		return
-	}
+	/*
+		jsonData, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
+			return
+		}
+	*/
 
-	_, err = uuid.Parse(input["code"].(string))
-	if err != nil {
-		apiResponse(c, http.StatusBadRequest, "error", "invalid tournament code", input)
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "pong",
-	})
+	fmt.Printf("v1 %#v", t)
+	fmt.Printf("Updating tournament %#v", t)
+
+	/*
+
+		json.Unmarshal(jsonData, &input)
+		if _, ok := input["code"]; !ok {
+			apiResponse(c, http.StatusBadRequest, "error", "code is required", input)
+			return
+		}
+
+		_, err = uuid.Parse(input["code"].(string))
+		if err != nil {
+			apiResponse(c, http.StatusBadRequest, "error", "invalid tournament code", input)
+			return
+		}
+
+		c.Writer.Header().Set("Location", "/tournament/"+input["code"].(string))
+	*/
+	apiResponse(c, http.StatusNoContent, "success", "", input)
 }
 
 func (app *application) deleteTournament(c *gin.Context) {

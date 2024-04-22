@@ -168,30 +168,6 @@ func (m UserModel) GetByEmail(email string) (*User, error) {
 		&user.City,
 		&user.Neighborhood,
 		&user.Version,
-		/*j
-		&user.Email,
-		&user.Password,
-		&user.Username,
-		&user.FirstName,
-		&user.LastName,
-		&user.Avatar,
-		&user.ClubID,
-		&user.Sex,
-		&user.AboutMe,
-		&user.Country,
-		&user.Province,
-		&user.City,
-		&user.Neighborhood,
-		&user.UserCode,
-		&user.ChessAgeCategory,
-		&user.ELOFideStandard,
-		&user.ELOFideRapid,
-		&user.ELONationalStandard,
-		&user.ELONationalRapid,
-		&user.ELORegionalStandard,
-		&user.ELORegionalRapid,
-		&user.Version,
-		*/
 	)
 
 	return &user, err
@@ -229,8 +205,6 @@ func (m UserModel) Update(nd map[string]interface{}) error {
 	if err != nil {
 		return err
 	}
-
-	println(query, args)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
