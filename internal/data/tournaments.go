@@ -64,6 +64,59 @@ type Tournament struct {
 	Version               int32         `json:"-" db:"version"`
 }
 
+// validFields is a slice containing the valid fields that can be used to sort
+// filter or modify the results of a query. This is used to prevent SQL injection
+// attacks by ensuring that only valid fields are used in the ORDER BY clause
+var validFields = []string{
+	"is_active",
+	"is_verified",
+	"is_deleted",
+	"is_online",
+	"online_link",
+	"is_otb",
+	"is_hybrid",
+	"is_team",
+	"is_individual",
+	"is_rated",
+	"is_unrated",
+	"match_making",
+	"is_private",
+	"is_public",
+	"member_cost",
+	"public_cost",
+	"currency",
+	"is_open",
+	"is_closed",
+	"name",
+	"poster",
+	"dates",
+	"location",
+	"registration_start_date",
+	"registration_end_date",
+	"age_category",
+	"time_control",
+	"type",
+	"rounds",
+	"organizer",
+	"user_organizer_id",
+	"contact_email",
+	"contact_phone",
+	"country",
+	"province",
+	"city",
+	"address",
+	"postal_code",
+	"observations",
+	"is_cancelled",
+	"players",
+	"teams",
+	"max_attendees",
+	"min_attendees",
+	"completed",
+	"is_draft",
+	"is_published",
+}
+
 type TournamentModel struct {
 	DB *sql.DB
 }

@@ -2,11 +2,13 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	// "io"
-	"encoding/json"
+	"github.com/lib/pq"
+	// "database/sql"
+	"io"
 	"net/http"
 )
 
@@ -52,41 +54,47 @@ func (app *application) getTournaments(c *gin.Context) {
 
 func (app *application) updateTournament(c *gin.Context) {
 	var input map[string]interface{}
-	var t data.Tournament
-	dec := json.NewDecoder(c.Request.Body)
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(&t); err != nil {
+	jsonData, err := io.ReadAll(c.Request.Body)
+	if err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
 		return
 	}
 
-	/*
-		jsonData, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
+	json.Unmarshal(jsonData, &input)
+
+	defer c.Request.Body.Close()
+
+	if _, ok := input["code"]; !ok {
+		apiResponse(c, http.StatusBadRequest, "error", "code is required", input)
+		return
+	}
+
+	_, err = uuid.Parse(input["code"].(string))
+	if err != nil {
+		apiResponse(c, http.StatusBadRequest, "error", "invalid tournament code", input)
+		return
+	}
+
+	// Create a custom validator for this, Database should not be returning the error
+	// from trying to insert
+	err = app.models.Tournaments.Update(input)
+	if err != nil {
+		pqErr := err.(*pq.Error)
+		switch pqErr.Code {
+		case "23505":
+			apiResponse(c, http.StatusBadRequest, "error", "duplicate record", input)
+			return
+		case "42703":
+			msg := fmt.Sprintf("invalid field: %s", pqErr.Column)
+			apiResponse(c, http.StatusBadRequest, "error", msg, input)
+			return
+		default:
+			app.internalServerError(c, err.Error())
 			return
 		}
-	*/
+	}
 
-	fmt.Printf("v1 %#v", t)
-	fmt.Printf("Updating tournament %#v", t)
-
-	/*
-
-		json.Unmarshal(jsonData, &input)
-		if _, ok := input["code"]; !ok {
-			apiResponse(c, http.StatusBadRequest, "error", "code is required", input)
-			return
-		}
-
-		_, err = uuid.Parse(input["code"].(string))
-		if err != nil {
-			apiResponse(c, http.StatusBadRequest, "error", "invalid tournament code", input)
-			return
-		}
-
-		c.Writer.Header().Set("Location", "/tournament/"+input["code"].(string))
-	*/
+	c.Writer.Header().Set("Location", "/tournament/"+input["code"].(string))
 	apiResponse(c, http.StatusNoContent, "success", "", input)
 }
 
