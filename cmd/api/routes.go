@@ -32,6 +32,7 @@ func (app *application) routes() *gin.Engine {
 
 	// Tournament routes
 	v1T.POST("/create", app.createNewTournament)
+	v1T.Use(app.tournamentValidator())
 	v1T.PUT("/update", app.updateTournament)
 
 	// Club routes
@@ -46,6 +47,7 @@ func (app *application) routes() *gin.Engine {
 
 	// System routes
 	v1Sys.GET("/healthcheck", app.healthcheck)
+
 	// v1Sys.GET("/version", app.version)
 	v1Sys.GET("/debug/vars", expvar.Handler())
 

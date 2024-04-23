@@ -232,3 +232,24 @@ func (app *application) metrics() gin.HandlerFunc {
 		totalProcessingTimeMicroseconds.Add(duration)
 	}
 }
+
+func (app *application) tournamentValidator() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var input data.Tournament
+		if err := c.ShouldBindJSON(&input); err != nil {
+			msg := "invalid field(s) and/or missing required field(s) in the request body"
+			app.badRequestResponse(c, msg, input)
+			return
+		}
+		fmt.Println("input: ", input.Code)
+
+		if input.Code == nil {
+			fmt.Println("code is required")
+			app.badRequestResponse(c, "code is required", input)
+			return
+		}
+
+		c.Set("input", input)
+		c.Next()
+	}
+}
