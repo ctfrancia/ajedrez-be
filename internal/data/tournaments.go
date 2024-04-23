@@ -3,7 +3,9 @@ package data
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 	"time"
 )
 
@@ -155,8 +157,42 @@ func (m TournamentModel) Insert(t *Tournament) error {
 	return nil
 }
 
+// addPlayersToTournament adds players to a tournament, it is either one player
+// or a list in a slice (e.g. []string{"player1", "player2"})
+func (m TournamentModel) AddPlayersToTournament(code string, players []string) (*Tournament, error) {
+	return nil, nil
+}
+
+// Update needs to be
 func (m TournamentModel) Update(nt map[string]interface{}) error {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	currPlayerList := []string{}
+	currTeamList := []string{}
+	query := `
+        SELECT players, teams
+        FROM tournaments
+        WHERE code = $1`
+	args := []any{nt["code"]}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(pq.Array(&currPlayerList), pq.Array(&currTeamList))
+	if err != nil {
+		fmt.Println("here error", err)
+		return err
+	}
+
+	if nt["players"] == nil {
+		nt["players"] = currPlayerList
+	} else {
+		nt["players"] = append(currPlayerList, nt["players"].([]string)...)
+	}
+
+	if nt["teams"] == nil {
+		nt["teams"] = currTeamList
+	} else {
+		nt["teams"] = append(currTeamList, nt["teams"].([]string)...)
+	}
+
 	t := &Tournament{}
 	qs := psql.Update("tournaments")
 	now := time.Now()
@@ -164,6 +200,16 @@ func (m TournamentModel) Update(nt map[string]interface{}) error {
 		if key == "code" {
 			continue
 		}
+		if key == "players" {
+			qs = qs.Set(key, pq.Array(value))
+			continue
+		}
+
+		if key == "teams" {
+			qs = qs.Set(key, pq.Array(value))
+			continue
+		}
+
 		qs = qs.Set(key, value)
 	}
 	qs = qs.Set("updated_at", now)
@@ -171,12 +217,12 @@ func (m TournamentModel) Update(nt map[string]interface{}) error {
 	qs = qs.Where(sq.Eq{"code": nt["code"]})
 	qs = qs.Suffix("RETURNING updated_at")
 
-	query, args, err := qs.ToSql()
+	query, args, err = qs.ToSql()
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	err = m.DB.QueryRowContext(ctx, query, args...).Scan(&t.UpdatedAt)
