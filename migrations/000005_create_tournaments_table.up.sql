@@ -60,8 +60,8 @@ CREATE TABLE IF NOT EXISTS tournaments (
     observations TEXT NOT NULL DEFAULT '',
     is_cancelled BOOLEAN NOT NULL DEFAULT FALSE,
 
-    players TEXT[] NOT NULL DEFAULT '{}', -- user codes
-    teams TEXT[] NOT NULL DEFAULT '{}', -- team codes
+    players BIGINT[] NOT NULL DEFAULT '{}', -- user.ids
+    teams BIGINT[] NOT NULL DEFAULT '{}', -- team.ids
     
     max_attendees INTEGER NOT NULL DEFAULT 0,
     min_attendees INTEGER NOT NULL DEFAULT 0,

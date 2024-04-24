@@ -52,74 +52,51 @@ func (app *application) getTournaments(c *gin.Context) {
 	})
 }
 
+// can add/remove players in a tournament
+func (app *application) updatePlayers(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "pong",
+	})
+}
+
+// can add/remove teams in a tournament
+func (app *application) updateTeams(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "pong",
+	})
+}
+
+func (app *application) modifyPlayers(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "pong",
+	})
+}
+
 func (app *application) updateTournament(c *gin.Context) {
 	var ut map[string]interface{}
 	t := c.MustGet("input").(data.Tournament)
 
-    if t.Code == nil {
-        app.badRequestResponse(c, "code is required", nil)
-        return
-    }
+	if t.Code == nil {
+		app.badRequestResponse(c, "code is required", nil)
+		return
+	}
 
-    _, err := uuid.Parse(*t.Code)
-    if err != nil {
-        data := map[string]interface{}{"code": *t.Code}
-        app.badRequestResponse(c, "invalid tournament code", data)
-        return
-    }
+	_, err := uuid.Parse(*t.Code)
+	if err != nil {
+		data := map[string]interface{}{"code": *t.Code}
+		app.badRequestResponse(c, "invalid tournament code", data)
+		return
+	}
 
 	ut = prepareTournamentUpdate(t)
 
-    err = app.models.Tournaments.Update(ut)
+	err = app.models.Tournaments.Update(ut)
 	if err != nil {
 		app.internalServerError(c, err.Error())
 		return
 	}
-	/*
-			var input map[string]interface{}
-			jsonData, err := io.ReadAll(c.Request.Body)
-			if err != nil {
-				apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
-				return
-			}
-
-			json.Unmarshal(jsonData, &input)
-
-			defer c.Request.Body.Close()
-
-			if _, ok := input["code"]; !ok {
-				apiResponse(c, http.StatusBadRequest, "error", "code is required", input)
-				return
-			}
-
-			_, err = uuid.Parse(input["code"].(string))
-			if err != nil {
-				apiResponse(c, http.StatusBadRequest, "error", "invalid tournament code", input)
-				return
-			}
-
-			// Create a custom validator for this, Database should not be returning the error
-			// from trying to insert
-		    err = app.models.Tournaments.Update(input)
-			if err != nil {
-				pqErr := err.(*pq.Error)
-				switch pqErr.Code {
-				case "23505":
-					apiResponse(c, http.StatusBadRequest, "error", "duplicate record", input)
-					return
-				case "42703":
-					msg := fmt.Sprintf("invalid field: %s", pqErr.Column)
-					apiResponse(c, http.StatusBadRequest, "error", msg, input)
-					return
-				default:
-					app.internalServerError(c, err.Error())
-					return
-				}
-			}
-
-			c.Writer.Header().Set("Location", "/tournament/"+input["code"].(string))
-			apiResponse(c, http.StatusNoContent, "success", "", input)
-	*/
+	c.Writer.Header().Set("Location", "/tournament/"+*t.Code)
+	apiResponse(c, http.StatusNoContent, "success", "", ut)
 }
 
 func (app *application) deleteTournament(c *gin.Context) {

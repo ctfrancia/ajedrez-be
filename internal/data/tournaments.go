@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+type PlayerTeamMod struct {
+	id     int
+	action string
+}
+
 type Tournament struct {
 	ID                    *int           `json:"id,omitempty" db:"id"`
 	IsActive              *bool          `json:"is_active,omitempty" db:"is_active"`
@@ -56,8 +61,8 @@ type Tournament struct {
 	PostalCode            *string        `json:"postal_code,omitempty" db:"postal_code"`
 	Observations          *string        `json:"observations,omitempty" db:"observations"`
 	IsCancelled           *bool          `json:"is_cancelled,omitempty" db:"is_cancelled"`
-	Players               []string       `json:"players,omitempty" db:"players"` // user codes
-	Teams                 []string       `json:"teams,omitempty" db:"teams"`     // team codes
+	Players               []int          `json:"players,omitempty" db:"players"` // user.id
+	Teams                 []int          `json:"teams,omitempty" db:"teams"`     // team.id
 	MaxAttendees          *int32         `json:"max_attendees,omitempty" db:"max_attendees"`
 	MinAttendees          *int32         `json:"min_attendees,omitempty" db:"min_attendees"`
 	Completed             *bool          `json:"completed,omitempty" db:"completed"`
@@ -143,11 +148,11 @@ func (m TournamentModel) Insert(t *Tournament) error {
 		return err
 	}
 	if t.Teams == nil {
-		t.Teams = []string{}
+		t.Teams = []int{}
 	}
 
 	if t.Players == nil {
-		t.Players = []string{}
+		t.Players = []int{}
 	}
 
 	if t.Dates == nil {
@@ -157,9 +162,79 @@ func (m TournamentModel) Insert(t *Tournament) error {
 	return nil
 }
 
-// addPlayersToTournament adds players to a tournament, it is either one player
-// or a list in a slice (e.g. []string{"player1", "player2"})
-func (m TournamentModel) AddPlayersToTournament(code string, players []string) (*Tournament, error) {
+// SavePlayers saves the players of a tournament
+func (m TournamentModel) SavePlayers(players []string, code string) error {
+	query := `
+        UPDATE tournaments
+        SET players = $1,
+        VERSION = VERSION + 1
+        WHERE code = $2
+        `
+	args := []any{players, code}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SaveTeams saves the teams of a tournament
+func (m TournamentModel) SaveTeams(teams []string, code string) error {
+	query := `
+        UPDATE tournaments
+        SET teams = $1,
+        VERSION = VERSION + 1
+        WHERE code = $2
+        `
+	args := []any{teams, code}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m TournamentModel) GetPlayers(code string) error {
+	query := `
+        SELECT players
+        FROM tournaments
+        WHERE code = $1`
+	args := []any{code}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m TournamentModel) GetTeams() ([]*Tournament, error) {
+	return nil, nil
+}
+
+func (m TournamentModel) SaveDates() ([]*Tournament, error) {
+	return nil, nil
+}
+
+func (m TournamentModel) AddTeamsToTournament(code string, teams []string) (*Tournament, error) {
+	return nil, nil
+}
+
+func (m TournamentModel) RemoveTeamsToTournament(code string, teams []string) (*Tournament, error) {
+	return nil, nil
+}
+
+// GetByCode returns a tournament by its uuid-code
+func (m TournamentModel) GetByCode(code string) (*Tournament, error) {
 	return nil, nil
 }
 
