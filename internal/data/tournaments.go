@@ -57,8 +57,8 @@ type Tournament struct {
 	PostalCode            *string        `json:"postal_code,omitempty" db:"postal_code"`
 	Observations          *string        `json:"observations,omitempty" db:"observations"`
 	IsCancelled           *bool          `json:"is_cancelled,omitempty" db:"is_cancelled"`
-	Players               []string       `json:"players,omitempty" db:"players"` // user.id
-	Teams                 []string       `json:"teams,omitempty" db:"teams"`     // team.id
+	Players               []int          `json:"players,omitempty" db:"players"` // user.id
+	Teams                 []int          `json:"teams,omitempty" db:"teams"`     // team.id
 	MaxAttendees          *int           `json:"max_attendees,omitempty" db:"max_attendees"`
 	MinAttendees          *int           `json:"min_attendees,omitempty" db:"min_attendees"`
 	Completed             *bool          `json:"completed,omitempty" db:"completed"`
@@ -80,22 +80,22 @@ func (m TournamentModel) Insert(t *Tournament) error {
             created_at,
             updated_at
         ) VALUES ($1, $2, $3, $4)
-        RETURNING code, created_at`
-	args := []any{t.Name, t.Code, now, now}
+        RETURNING id, created_at`
+	args := []any{*t.Name, t.Code, now, now}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&t.Code, &t.CreatedAt)
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&t.ID, &t.CreatedAt)
 	if err != nil {
 		return err
 	}
 	if t.Teams == nil {
-		t.Teams = []string{}
+		t.Teams = []int{}
 	}
 
 	if t.Players == nil {
-		t.Players = []string{}
+		t.Players = []int{}
 	}
 
 	if t.Dates == nil {

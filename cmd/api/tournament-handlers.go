@@ -21,19 +21,22 @@ func (app *application) createNewTournament(c *gin.Context) {
 	}
 
 	fmt.Println("Creating new tournament", input)
-	tCode := uuid.New().String()
+
+	code := uuid.New().String()
+
 	t := data.Tournament{
 		Name: &input.Name,
-		Code: &tCode,
+		Code: &code,
 	}
-
 	err := app.models.Tournaments.Insert(&t)
 	if err != nil {
 		app.internalServerError(c, err.Error())
 		return
 	}
 
-	c.Writer.Header().Set("Location", "/tournament/"+tCode)
+	tID := strconv.Itoa(*t.ID)
+
+	c.Writer.Header().Set("Location", "/tournament/"+tID)
 	apiResponse(c, http.StatusCreated, "success", "", t)
 }
 
@@ -150,6 +153,15 @@ func (app *application) updateTournament(c *gin.Context) {
 		data := map[string]interface{}{"code": *t.Code}
 		app.badRequestResponse(c, "invalid tournament code", data)
 		return
+	}
+
+	// update the date-tournamnet many-to-many relationship if there are dates
+	if t.Dates != nil {
+		// err = app.models.Tournaments.UpdateDates(&t)
+		if err != nil {
+			app.internalServerError(c, err.Error())
+			return
+		}
 	}
 
 	ut = prepareTournamentUpdate(t)
