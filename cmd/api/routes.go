@@ -32,6 +32,7 @@ func (app *application) routes() *gin.Engine {
 
 	// Tournament routes
 	v1T.POST("/create", app.createNewTournament)
+	v1T.GET("/by-id/:id", app.getByID)
 	v1T.Use(app.tournamentValidator())
 	v1T.PUT("/update", app.updateTournament)
 	v1T.PUT("/add-players", app.addPlayersToTournament)

@@ -224,6 +224,131 @@ func (m TournamentModel) GetByCode(code string) (*Tournament, error) {
 	return nil, nil
 }
 
+func (m TournamentModel) GetByID(id int) (Tournament, error) {
+	t := Tournament{}
+
+	query := `
+        SELECT
+            name,
+            is_active,
+            is_verified,
+            created_at,
+            updated_at,
+            updated_by,
+            deleted_at,
+            is_deleted,
+            is_online,
+            online_link,
+            is_otb,
+            is_hybrid,
+            is_team,
+            is_individual,
+            is_rated,
+            is_unrated,
+            match_making,
+            is_private,
+            is_public,
+            member_cost,
+            public_cost,
+            currency,
+            is_open,
+            is_closed,
+            code,
+            poster,
+            dates,
+            location,
+            registration_start_date,
+            registration_end_date,
+            age_category,
+            time_control,
+            type,
+            rounds,
+            organizer,
+            user_organizer,
+            contact_email,
+            contact_phone,
+            country,
+            province,
+            city,
+            address,
+            postal_code,
+            observations,
+            is_cancelled,
+            players,
+            teams,
+            max_attendees,
+            min_attendees,
+            completed,
+            is_draft,
+            is_published
+        FROM tournaments
+        WHERE id = $1`
+	args := []any{id}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
+		&t.Name,
+		&t.IsActive,
+		&t.IsVerified,
+		&t.CreatedAt,
+		&t.UpdatedAt,
+		&t.UpdatedBy,
+		&t.DeletedAt,
+		&t.IsDeleted,
+		&t.IsOnline,
+		&t.OnlineLink,
+		&t.IsOTB,
+		&t.IsHybrid,
+		&t.IsTeam,
+		&t.IsIndividual,
+		&t.IsRated,
+		&t.IsUnrated,
+		&t.MatchMaking,
+		&t.IsPrivate,
+		&t.IsPublic,
+		&t.MemberCost,
+		&t.PublicCost,
+		&t.Currency,
+		&t.IsOpen,
+		&t.IsClosed,
+		&t.Code,
+		&t.Poster,
+		&t.Dates,
+		&t.Location,
+		&t.RegistrationStartDate,
+		&t.RegistrationEndDate,
+		&t.AgeCategory,
+		&t.TimeControl,
+		&t.Type,
+		&t.Rounds,
+		&t.Organizer,
+		&t.UserOrganizer,
+		&t.ContactEmail,
+		&t.ContactPhone,
+		&t.Country,
+		&t.Province,
+		&t.City,
+		&t.Address,
+		&t.PostalCode,
+		&t.Observations,
+		&t.IsCancelled,
+		&t.Players,
+		&t.Teams,
+		&t.MaxAttendees,
+		&t.MinAttendees,
+		&t.Completed,
+		&t.IsDraft,
+		&t.IsPublished,
+	)
+
+	if err != nil {
+		return t, err
+	}
+	return t, nil
+}
+
 // Update needs to be
 func (m TournamentModel) Update(nt map[string]interface{}) (Tournament, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)

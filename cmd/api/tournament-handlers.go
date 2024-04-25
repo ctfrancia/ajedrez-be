@@ -2,14 +2,11 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
-	// "encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	// "github.com/lib/pq"
-	// "database/sql"
-	// "io"
 	"net/http"
+	"strconv"
 )
 
 func (app *application) createNewTournament(c *gin.Context) {
@@ -37,6 +34,32 @@ func (app *application) createNewTournament(c *gin.Context) {
 
 	c.Writer.Header().Set("Location", "/tournament/"+tCode)
 	apiResponse(c, http.StatusCreated, "success", "", t)
+}
+
+func (app *application) getByID(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		app.badRequestResponse(c, "invalid tournament id", idStr)
+		return
+	}
+
+	fmt.Println("Getting tournament by id: ", id)
+
+	t, err := app.models.Tournaments.GetByID(id)
+	if err != nil {
+		switch err {
+		case data.ErrRecordNotFound:
+			app.notFoundResponse(c)
+
+		default:
+			app.internalServerError(c, err.Error())
+		}
+
+		return
+	}
+
+	apiResponse(c, http.StatusOK, "success", "", t)
 }
 
 func (app *application) getTournament(c *gin.Context) {
