@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS users (
     lichess_username text NOT NULL DEFAULT '',
     chess24_username text NOT NULL DEFAULT '',
 
+    tournaments bigint[] NOT NULL DEFAULT '{}', -- fk to tournaments table
+
     country text NOT NULL DEFAULT '',
     province text NOT NULL DEFAULT '',
     city text NOT NULL DEFAULT '',

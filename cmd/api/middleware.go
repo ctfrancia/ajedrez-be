@@ -241,7 +241,6 @@ func (app *application) tournamentValidator() gin.HandlerFunc {
 			app.badRequestResponse(c, msg, input)
 			return
 		}
-		fmt.Println("input: ", input.Code)
 
 		if input.Code == nil {
 			fmt.Println("code is required")

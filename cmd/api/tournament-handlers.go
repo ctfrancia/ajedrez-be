@@ -52,6 +52,49 @@ func (app *application) getTournaments(c *gin.Context) {
 	})
 }
 
+func (app *application) addPlayersToTournament(c *gin.Context) {
+	t := c.MustGet("input").(data.Tournament)
+
+	_, err := uuid.Parse(*t.Code)
+	if err != nil {
+		fmt.Println("error: ", err)
+		data := map[string]interface{}{"code": *t.Code}
+		app.badRequestResponse(c, "invalid tournament code", data)
+		return
+	}
+
+	if t.Players == nil {
+		app.badRequestResponse(c, "no players to add", t)
+		return
+	}
+
+	if len(t.Players) == 0 || len(t.Players) > 1 {
+		msg := "only one player can be added at a time or there is no player to add"
+		app.badRequestResponse(c, msg, t)
+		return
+	}
+
+	err = app.models.Tournaments.AddPlayersToTournament(t)
+	if err != nil {
+		switch err {
+		case data.ErrNoResultSet:
+			c.Writer.Header().Set("Location", "/tournament/"+*t.Code)
+			apiResponse(c, http.StatusNoContent, "success", "", t)
+
+		case data.ErrRecordNotFound:
+			app.notFoundResponse(c)
+
+		default:
+			app.internalServerError(c, err.Error())
+		}
+
+		return
+	}
+
+	c.Writer.Header().Set("Location", "/tournament/"+*t.Code)
+	apiResponse(c, http.StatusNoContent, "success", "", t)
+}
+
 // can add/remove players in a tournament
 func (app *application) updatePlayers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
@@ -76,11 +119,6 @@ func (app *application) updateTournament(c *gin.Context) {
 	var ut map[string]interface{}
 	t := c.MustGet("input").(data.Tournament)
 
-	if t.Code == nil {
-		app.badRequestResponse(c, "code is required", nil)
-		return
-	}
-
 	_, err := uuid.Parse(*t.Code)
 	if err != nil {
 		data := map[string]interface{}{"code": *t.Code}
@@ -90,11 +128,23 @@ func (app *application) updateTournament(c *gin.Context) {
 
 	ut = prepareTournamentUpdate(t)
 
-	err = app.models.Tournaments.Update(ut)
+	_, err = app.models.Tournaments.Update(ut)
 	if err != nil {
-		app.internalServerError(c, err.Error())
+		switch err {
+		case data.ErrNoResultSet:
+			c.Writer.Header().Set("Location", "/tournament/"+*t.Code)
+			apiResponse(c, http.StatusNoContent, "success", "", ut)
+
+		case data.ErrRecordNotFound:
+			app.notFoundResponse(c)
+
+		default:
+			app.internalServerError(c, err.Error())
+		}
+
 		return
 	}
+
 	c.Writer.Header().Set("Location", "/tournament/"+*t.Code)
 	apiResponse(c, http.StatusNoContent, "success", "", ut)
 }

@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     is_open BOOLEAN NOT NULL DEFAULT FALSE,
     is_closed BOOLEAN NOT NULL DEFAULT FALSE,
 
-    code TEXT NOT NULL DEFAULT uuid_generate_v1(),
+    code UUID NOT NULL DEFAULT uuid_generate_v1(),
     name TEXT NOT NULL,
     poster TEXT NOT NULL DEFAULT '',
     dates TIMESTAMP(0) with time zone[] NOT NULL DEFAULT '{}',
@@ -60,8 +60,8 @@ CREATE TABLE IF NOT EXISTS tournaments (
     observations TEXT NOT NULL DEFAULT '',
     is_cancelled BOOLEAN NOT NULL DEFAULT FALSE,
 
-    players BIGINT[] NOT NULL DEFAULT '{}', -- user.ids
-    teams BIGINT[] NOT NULL DEFAULT '{}', -- team.ids
+    players INTEGER[] NOT NULL DEFAULT '{}', -- user.ids
+    teams INTEGER[] NOT NULL DEFAULT '{}', -- team.ids
     
     max_attendees INTEGER NOT NULL DEFAULT 0,
     min_attendees INTEGER NOT NULL DEFAULT 0,

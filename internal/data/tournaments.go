@@ -3,16 +3,12 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 	"time"
 )
-
-type PlayerTeamMod struct {
-	id     int
-	action string
-}
 
 type Tournament struct {
 	ID                    *int           `json:"id,omitempty" db:"id"`
@@ -61,67 +57,14 @@ type Tournament struct {
 	PostalCode            *string        `json:"postal_code,omitempty" db:"postal_code"`
 	Observations          *string        `json:"observations,omitempty" db:"observations"`
 	IsCancelled           *bool          `json:"is_cancelled,omitempty" db:"is_cancelled"`
-	Players               []int          `json:"players,omitempty" db:"players"` // user.id
-	Teams                 []int          `json:"teams,omitempty" db:"teams"`     // team.id
-	MaxAttendees          *int32         `json:"max_attendees,omitempty" db:"max_attendees"`
-	MinAttendees          *int32         `json:"min_attendees,omitempty" db:"min_attendees"`
+	Players               []string       `json:"players,omitempty" db:"players"` // user.id
+	Teams                 []string       `json:"teams,omitempty" db:"teams"`     // team.id
+	MaxAttendees          *int           `json:"max_attendees,omitempty" db:"max_attendees"`
+	MinAttendees          *int           `json:"min_attendees,omitempty" db:"min_attendees"`
 	Completed             *bool          `json:"completed,omitempty" db:"completed"`
 	IsDraft               *bool          `json:"is_draft,omitempty" db:"is_draft"`
 	IsPublished           *bool          `json:"is_published,omitempty" db:"is_published"`
-	Version               *int32         `json:"-" db:"version"`
-}
-
-// validFields is a slice containing the valid fields that can be used to sort
-// filter or modify the results of a query. This is used to prevent SQL injection
-// attacks by ensuring that only valid fields are used in the ORDER BY clause
-var validFields = []string{
-	"is_active",
-	"is_verified",
-	"is_deleted",
-	"is_online",
-	"online_link",
-	"is_otb",
-	"is_hybrid",
-	"is_team",
-	"is_individual",
-	"is_rated",
-	"is_unrated",
-	"match_making",
-	"is_private",
-	"is_public",
-	"member_cost",
-	"public_cost",
-	"currency",
-	"is_open",
-	"is_closed",
-	"name",
-	"poster",
-	"dates",
-	"location",
-	"registration_start_date",
-	"registration_end_date",
-	"age_category",
-	"time_control",
-	"type",
-	"rounds",
-	"organizer",
-	"user_organizer_id",
-	"contact_email",
-	"contact_phone",
-	"country",
-	"province",
-	"city",
-	"address",
-	"postal_code",
-	"observations",
-	"is_cancelled",
-	"players",
-	"teams",
-	"max_attendees",
-	"min_attendees",
-	"completed",
-	"is_draft",
-	"is_published",
+	Version               *int16         `json:"-" db:"version"`
 }
 
 type TournamentModel struct {
@@ -148,15 +91,38 @@ func (m TournamentModel) Insert(t *Tournament) error {
 		return err
 	}
 	if t.Teams == nil {
-		t.Teams = []int{}
+		t.Teams = []string{}
 	}
 
 	if t.Players == nil {
-		t.Players = []int{}
+		t.Players = []string{}
 	}
 
 	if t.Dates == nil {
 		t.Dates = []time.Time{}
+	}
+
+	return nil
+}
+
+func (m TournamentModel) AddPlayersToTournament(t Tournament) error {
+	players := &t.Players[0]
+	tt := Tournament{}
+	query := `
+        UPDATE tournaments
+        SET players = array_append(players, $1)
+        WHERE code = $2
+        RETURNING code, created_at, players`
+	args := []any{players, t.Code}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	fmt.Println("players: ", players)
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&tt.Code, &tt.CreatedAt, &tt.Players)
+	if err != nil {
+		fmt.Println("error: ", err)
+		return err
 	}
 
 	return nil
@@ -200,7 +166,27 @@ func (m TournamentModel) SaveTeams(teams []string, code string) error {
 	return nil
 }
 
-func (m TournamentModel) GetPlayers(code string) error {
+func (m TournamentModel) GetPlayersAndTeams(code string) ([]int, []int, error) {
+	players := []int{}
+	teams := []int{}
+	query := `
+        SELECT players, teams
+        FROM tournaments
+        WHERE code = $1`
+	args := []any{code}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&players, &teams)
+	if err != nil {
+		return []int{}, []int{}, err
+	}
+
+	return players, teams, nil
+}
+
+func (m TournamentModel) GetPlayers(code string) ([]int, error) {
+	players := []int{}
 	query := `
         SELECT players
         FROM tournaments
@@ -209,12 +195,12 @@ func (m TournamentModel) GetPlayers(code string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan()
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&players)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return players, nil
 }
 
 func (m TournamentModel) GetTeams() ([]*Tournament, error) {
@@ -239,42 +225,12 @@ func (m TournamentModel) GetByCode(code string) (*Tournament, error) {
 }
 
 // Update needs to be
-func (m TournamentModel) Update(nt map[string]interface{}) error {
+func (m TournamentModel) Update(nt map[string]interface{}) (Tournament, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	currPlayerList := []string{}
-	currTeamList := []string{}
-	query := `
-        SELECT players, teams
-        FROM tournaments
-        WHERE code = $1`
-	args := []any{nt["code"]}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(pq.Array(&currPlayerList), pq.Array(&currTeamList))
-	if err != nil {
-		fmt.Println("here error", err)
-		return err
-	}
-
-	if nt["players"] == nil {
-		nt["players"] = currPlayerList
-	} else {
-		nt["players"] = append(currPlayerList, nt["players"].([]string)...)
-	}
-
-	if nt["teams"] == nil {
-		nt["teams"] = currTeamList
-	} else {
-		nt["teams"] = append(currTeamList, nt["teams"].([]string)...)
-	}
-
-	t := &Tournament{}
 	qs := psql.Update("tournaments")
+	t := Tournament{}
 	now := time.Now()
 	for key, value := range nt {
-		if key == "code" {
-			continue
-		}
 		if key == "players" {
 			qs = qs.Set(key, pq.Array(value))
 			continue
@@ -290,20 +246,25 @@ func (m TournamentModel) Update(nt map[string]interface{}) error {
 	qs = qs.Set("updated_at", now)
 	qs = qs.Set("version", sq.Expr("version + 1"))
 	qs = qs.Where(sq.Eq{"code": nt["code"]})
-	qs = qs.Suffix("RETURNING updated_at")
+	qs = qs.Suffix("RETURNING code, created_at")
 
-	query, args, err = qs.ToSql()
+	query, args, err := qs.ToSql()
 	if err != nil {
-		return err
+		return t, err
 	}
 
-	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err = m.DB.QueryRowContext(ctx, query, args...).Scan(&t.UpdatedAt)
+	err = m.DB.QueryRowContext(ctx, query, args...).Scan(&t.Code, &t.CreatedAt)
 	if err != nil {
-		return err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return t, ErrRecordNotFound
+		default:
+			return t, err
+		}
 	}
 
-	return nil
+	return t, nil
 }

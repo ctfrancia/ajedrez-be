@@ -9,6 +9,7 @@ import (
 // looking up a user that doesn't exist in our database.
 var (
 	ErrRecordNotFound = errors.New("record not found")
+	ErrNoResultSet    = errors.New("no rows in result set")
 )
 
 // Create a Models struct which wraps the UserModel. We'll add other models to this,
