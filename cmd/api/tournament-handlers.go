@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func (app *application) createNewTournament(c *gin.Context) {
@@ -141,6 +142,8 @@ func (app *application) modifyPlayers(c *gin.Context) {
 func (app *application) updateTournament(c *gin.Context) {
 	var ut map[string]interface{}
 	t := c.MustGet("input").(data.Tournament)
+	now := time.Now()
+	fmt.Println("now: ", now.Format(time.RFC3339))
 
 	_, err := uuid.Parse(*t.Code)
 	if err != nil {

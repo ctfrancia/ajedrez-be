@@ -366,6 +366,11 @@ func (m TournamentModel) Update(nt map[string]interface{}) (Tournament, error) {
 			continue
 		}
 
+		if key == "dates" {
+			qs = qs.Set(key, pq.Array(value))
+			continue
+		}
+
 		qs = qs.Set(key, value)
 	}
 	qs = qs.Set("updated_at", now)
@@ -374,6 +379,7 @@ func (m TournamentModel) Update(nt map[string]interface{}) (Tournament, error) {
 	qs = qs.Suffix("RETURNING code, created_at")
 
 	query, args, err := qs.ToSql()
+	fmt.Println("query: ", query)
 	if err != nil {
 		return t, err
 	}
