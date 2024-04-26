@@ -1,18 +1,21 @@
 package main
 
 import (
-	"context"
+	// "context"
 	"ctfrancia/ajedrez-be/internal/data"
 	"ctfrancia/ajedrez-be/internal/mailer"
-	"database/sql"
-	"expvar"
+	// "database/sql"
+	// "expvar"
 	"flag"
 	"log"
 	"os"
-	"runtime"
+	// "runtime"
 	"strings"
 	"sync"
 	"time"
+
+	// "gorm.io/driver/postgres"
+	// "gorm.io/gorm"
 
 	_ "github.com/lib/pq"
 )
@@ -75,44 +78,48 @@ func main() {
 	flag.Parse()
 
 	// logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	db, err := openDB(cfg)
-	if err != nil {
-		// logger.Error("cannot connect to database", "error", err)
-		os.Exit(1)
-	}
+	/*
+		db, err := openDB(cfg)
+		if err != nil {
+			// logger.Error("cannot connect to database", "error", err)
+			os.Exit(1)
+		}
 
-	println("Connected to database")
+		println("Connected to database")
 
-	defer db.Close()
+		defer db.Close()
 
-	expvar.NewString("version").Set(version)
-	// Publish the number of active goroutines.
-	expvar.Publish("goroutines", expvar.Func(func() any {
-		return runtime.NumGoroutine()
-	}))
+		expvar.NewString("version").Set(version)
+		// Publish the number of active goroutines.
+		expvar.Publish("goroutines", expvar.Func(func() any {
+			return runtime.NumGoroutine()
+		}))
 
-	// Publish the database connection pool statistics.
-	expvar.Publish("database", expvar.Func(func() any {
-		return db.Stats()
-	}))
+		// Publish the database connection pool statistics.
+		expvar.Publish("database", expvar.Func(func() any {
+			return db.Stats()
+		}))
 
-	// Publish the current Unix timestamp.
-	expvar.Publish("timestamp", expvar.Func(func() any {
-		return time.Now().Unix()
-	}))
+		// Publish the current Unix timestamp.
+		expvar.Publish("timestamp", expvar.Func(func() any {
+			return time.Now().Unix()
+		}))
+	*/
 
 	app := &application{
 		config: cfg,
-		models: data.NewModels(db),
+		// models: data.NewModels(db),
+		repo:   data.NewRepository(db),
 		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
 
-	err = app.serve()
+	err := app.serve()
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
+/*
 func openDB(cfg config) (*sql.DB, error) {
 	// Open database
 	db, err := sql.Open("postgres", cfg.db.dsn)
@@ -144,3 +151,4 @@ func openDB(cfg config) (*sql.DB, error) {
 	// Return the sql.DB connection pool.
 	return db, nil
 }
+*/
