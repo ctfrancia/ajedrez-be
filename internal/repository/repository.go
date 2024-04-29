@@ -11,9 +11,9 @@ var (
 )
 
 type Repository struct {
-	// Users UsersRepository
-	// Clubs ClubsRepository
-	// Tokens TokensRepository
+	Users       UserRepository
+	Clubs       ClubsRepository
+	Tokens      TokensRepository
 	Tournaments TournamentsRepository
 	// Matches MatchesRepository
 }

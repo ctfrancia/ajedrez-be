@@ -19,7 +19,7 @@ type Models struct {
 	Clubs       ClubModel
 	Tokens      TokenModel
 	Tournaments TournamentModel
-	M2M         M2MRelModel
+	// M2M         M2MRelModel
 }
 
 // For ease of use, we also add a New() method which returns a Models struct containing
@@ -30,6 +30,6 @@ func NewModels(db *sql.DB) Models {
 		Clubs:       ClubModel{DB: db},
 		Tokens:      TokenModel{DB: db},
 		Tournaments: TournamentModel{DB: db},
-		M2M:         M2MRelModel{DB: db},
+		// 		M2M:         M2MRelModel{DB: db},
 	}
 }

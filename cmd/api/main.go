@@ -4,18 +4,21 @@ import (
 	// "context"
 	"ctfrancia/ajedrez-be/internal/data"
 	"ctfrancia/ajedrez-be/internal/mailer"
+	"ctfrancia/ajedrez-be/internal/repository"
+
 	// "database/sql"
 	// "expvar"
 	"flag"
 	"log"
 	"os"
+
 	// "runtime"
 	"strings"
 	"sync"
 	"time"
 
-	// "gorm.io/driver/postgres"
-	// "gorm.io/gorm"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	_ "github.com/lib/pq"
 )
@@ -47,10 +50,11 @@ type config struct {
 }
 
 type application struct {
-	config config
-	models data.Models
-	mailer mailer.Mailer
-	wg     sync.WaitGroup
+	config     config
+	models     data.Models
+	repository repository.Repository
+	mailer     mailer.Mailer
+	wg         sync.WaitGroup
 }
 
 const version = "1.0.0"
@@ -105,18 +109,32 @@ func main() {
 			return time.Now().Unix()
 		}))
 	*/
+	db, err := openDB(cfg)
+	if err != nil {
+		panic(err)
+	}
 
 	app := &application{
 		config: cfg,
 		// models: data.NewModels(db),
-		repo:   data.NewRepository(db),
-		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
+		repository: repository.NewRepository(db),
+		mailer:     mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
 
-	err := app.serve()
+	err = app.serve()
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func openDB(cfg config) (*gorm.DB, error) {
+	// dsn := cfg.db.dsn
+	dsn := "host=localhost user=chess_admin password=pa55word dbname=my_chess_website sslmode=disable"
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
 }
 
 /*
