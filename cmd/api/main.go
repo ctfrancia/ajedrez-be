@@ -90,8 +90,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		println("Connected to database")
-
 		defer db.Close()
 
 		expvar.NewString("version").Set(version)
@@ -130,9 +128,9 @@ func main() {
 }
 
 func openDB(cfg config) (*gorm.DB, error) {
-	// dsn := cfg.db.dsn
-	dsn := "host=localhost user=chess_admin password=pa55word dbname=my_chess_website sslmode=disable"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	dsn := cfg.db.dsn
+	// dsn := "host=localhost user=chess_admin password=pa55word dbname=my_chess_website sslmode=disable"
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
 	if err != nil {
 		return nil, err
 	}

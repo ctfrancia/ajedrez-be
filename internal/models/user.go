@@ -26,9 +26,9 @@ type User struct {
 	Username            string
 	Password            []byte
 	PasswordResetToken  string
-	Email               string
+	Email               *string `gorm:"unique;not null"`
 	Avatar              string
-	DateOfBirth         time.Time // `gorm:"column:dob"`
+	DateOfBirth         time.Time
 	AboutMe             string
 	Language            string
 	Sex                 string

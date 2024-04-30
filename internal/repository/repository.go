@@ -8,6 +8,7 @@ import (
 var (
 	ErrRecordNotFound = errors.New("record not found")
 	ErrNoResultSet    = errors.New("no rows in result set")
+	ErrDuplicateEmail = errors.New("duplicate email")
 )
 
 type Repository struct {
@@ -22,5 +23,7 @@ func NewRepository(db *gorm.DB) Repository {
 	return Repository{
 		Tournaments: TournamentsRepository{db},
 		Users:       UserRepository{DB: db},
+		Clubs:       ClubsRepository{db},
+		Tokens:      TokensRepository{db},
 	}
 }

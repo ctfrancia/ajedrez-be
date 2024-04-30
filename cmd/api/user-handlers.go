@@ -3,6 +3,7 @@ package main
 import (
 	"ctfrancia/ajedrez-be/internal/data"
 	"ctfrancia/ajedrez-be/internal/models"
+	"ctfrancia/ajedrez-be/internal/repository"
 	"ctfrancia/ajedrez-be/pkg/dtos"
 	"net/http"
 
@@ -19,15 +20,6 @@ import (
 
 func (app *application) createNewUser(c *gin.Context) {
 	var input dtos.UserCreateRequest
-	/*
-		var input struct {
-			FirstName string `json:"first_name" binding:"required"`
-			LastName  string `json:"last_name"  binding:"required"`
-			Email     string `json:"email"      binding:"required"`
-			Password  string `json:"password"   binding:"required"`
-			Language  string `json:"language"   binding:"required"`
-		}
-	*/
 	if err := c.ShouldBindJSON(&input); err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
 		return
@@ -35,7 +27,7 @@ func (app *application) createNewUser(c *gin.Context) {
 	cnu := models.User{
 		FirstName: input.FirstName,
 		LastName:  input.LastName,
-		Email:     input.Email,
+		Email:     &input.Email,
 		Language:  input.Language,
 		UserCode:  uuid.New().String(),
 	}
@@ -53,9 +45,8 @@ func (app *application) createNewUser(c *gin.Context) {
 	cnu.Password = hashed
 	err = app.repository.Users.Create(&cnu)
 	if err != nil {
-		log.Println("error at insert ", err)
 		switch {
-		case errors.Is(err, data.ErrDuplicateEmail):
+		case errors.Is(err, repository.ErrDuplicateEmail):
 			resp := map[string]interface{}{
 				"email": cnu.Email,
 			}
@@ -63,6 +54,7 @@ func (app *application) createNewUser(c *gin.Context) {
 		default:
 			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), input)
 		}
+
 		return
 	}
 
@@ -80,8 +72,7 @@ func (app *application) createNewUser(c *gin.Context) {
 			"userID":          cnu.ID,
 		}
 		// TODO: the welcome template will be based on users' preferred language
-		// need to modify user model/databse to include language preference
-		err = app.mailer.Send(cnu.Email, "user_welcome_en.tmpl", data)
+		err = app.mailer.Send(*cnu.Email, "user_welcome_en.tmpl", data)
 		if err != nil {
 			log.Fatal(err)
 			// TODO: send error to monitoring service
