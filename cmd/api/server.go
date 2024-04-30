@@ -37,7 +37,7 @@ func (app *application) serve() error {
 			shutdownError <- err
 		}
 
-		fmt.Printf("completing background tasks: %s", srv.Addr)
+		fmt.Printf("completing background tasks %s", srv.Addr)
 
 		app.wg.Wait()
 		shutdownError <- nil

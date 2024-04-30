@@ -47,7 +47,7 @@ setup-dev:
 	@echo "----------------------"
 
 	@echo "====Running migrations===="
-	migrate -path ./migrations -database ${CHESS_DB_DSN} up
+	# migrate -path ./migrations -database ${CHESS_DB_DSN} up
 	@echo "==========================="
 
 	@echo "====Running seeds===="

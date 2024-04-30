@@ -4,6 +4,7 @@ import (
 	// "context"
 	"ctfrancia/ajedrez-be/internal/data"
 	"ctfrancia/ajedrez-be/internal/mailer"
+	"ctfrancia/ajedrez-be/internal/models"
 	"ctfrancia/ajedrez-be/internal/repository"
 
 	// "database/sql"
@@ -113,6 +114,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	println("Connected to database")
 
 	app := &application{
 		config: cfg,
@@ -134,6 +136,8 @@ func openDB(cfg config) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	db.AutoMigrate(&models.User{}, &models.Token{}, &models.Tournament{}, &models.Team{})
 	return db, nil
 }
 

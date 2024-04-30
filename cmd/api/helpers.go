@@ -2,8 +2,10 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
-	"github.com/gin-gonic/gin"
+	"ctfrancia/ajedrez-be/internal/models"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 func apiResponse(c *gin.Context, httpStatus int, status, message string, data interface{}) {
@@ -14,8 +16,7 @@ func apiResponse(c *gin.Context, httpStatus int, status, message string, data in
 	})
 }
 
-func normalizeUser(u *data.User) {
-	u.Email = strings.ToLower(u.Email)
+func normalizeUser(u *models.User) {
 	u.FirstName = strings.Trim(u.FirstName, " ")
 	u.LastName = strings.Trim(u.LastName, " ")
 	u.Username = strings.Trim(u.Username, " ")

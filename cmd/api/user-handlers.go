@@ -2,11 +2,13 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
+	"ctfrancia/ajedrez-be/internal/models"
+	"ctfrancia/ajedrez-be/pkg/dtos"
 	"net/http"
 
 	"io"
+	"log"
 	"strings"
-	"time"
 
 	"encoding/json"
 	"errors"
@@ -16,18 +18,21 @@ import (
 )
 
 func (app *application) createNewUser(c *gin.Context) {
-	var input struct {
-		FirstName string `json:"first_name" binding:"required"`
-		LastName  string `json:"last_name"  binding:"required"`
-		Email     string `json:"email"      binding:"required"`
-		Password  string `json:"password"   binding:"required"`
-		Language  string `json:"language"   binding:"required"`
-	}
+	var input dtos.UserCreateRequest
+	/*
+		var input struct {
+			FirstName string `json:"first_name" binding:"required"`
+			LastName  string `json:"last_name"  binding:"required"`
+			Email     string `json:"email"      binding:"required"`
+			Password  string `json:"password"   binding:"required"`
+			Language  string `json:"language"   binding:"required"`
+		}
+	*/
 	if err := c.ShouldBindJSON(&input); err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
 		return
 	}
-	cnu := data.User{
+	cnu := models.User{
 		FirstName: input.FirstName,
 		LastName:  input.LastName,
 		Email:     input.Email,
@@ -38,16 +43,17 @@ func (app *application) createNewUser(c *gin.Context) {
 	// normalize user data before inserting into the database
 	normalizeUser(&cnu)
 
-	err := cnu.Password.Set(input.Password)
+	// err := cnu.Password.Set(input.Password)
+	hashed, err := models.PasswordSet(input.Password)
 	if err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
 		return
 	}
 
-	err = app.models.Users.Insert(&cnu)
+	cnu.Password = hashed
+	err = app.repository.Users.Create(&cnu)
 	if err != nil {
-
-		println("here", err.Error(), cnu.Email)
+		log.Println("error at insert ", err)
 		switch {
 		case errors.Is(err, data.ErrDuplicateEmail):
 			resp := map[string]interface{}{
@@ -62,7 +68,7 @@ func (app *application) createNewUser(c *gin.Context) {
 
 	// After the user record has been created in the database, generate a new activation
 	// token for the user.
-	token, err := app.models.Tokens.New(cnu.ID, 3*24*time.Hour, data.ScopeActivation)
+	token, err := app.repository.Tokens.New(cnu.ID, models.TokenLifetime, data.ScopeActivation)
 	if err != nil {
 		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
 		return
@@ -77,7 +83,8 @@ func (app *application) createNewUser(c *gin.Context) {
 		// need to modify user model/databse to include language preference
 		err = app.mailer.Send(cnu.Email, "user_welcome_en.tmpl", data)
 		if err != nil {
-			// TODO log error
+			log.Fatal(err)
+			// TODO: send error to monitoring service
 			// app.logger.Error(err.Error())
 		}
 	})
