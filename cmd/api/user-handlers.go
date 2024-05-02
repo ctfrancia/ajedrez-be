@@ -100,32 +100,32 @@ func (app *application) getUserByEmail(c *gin.Context) {
 }
 
 func (app *application) updateUser(c *gin.Context) {
-	var incommingData map[string]interface{}
+	var input map[string]interface{}
 	jsonData, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
 		return
 	}
 
-	json.Unmarshal(jsonData, &incommingData)
-	if _, ok := incommingData["user_code"]; !ok {
-		apiResponse(c, http.StatusBadRequest, "error", "user_code is required", incommingData)
+	json.Unmarshal(jsonData, &input)
+	if _, ok := input["user_code"]; !ok {
+		apiResponse(c, http.StatusBadRequest, "error", "user_code is required", input)
 		return
 	}
 
-	_, err = uuid.Parse(incommingData["user_code"].(string))
+	_, err = uuid.Parse(input["user_code"].(string))
 	if err != nil {
-		apiResponse(c, http.StatusBadRequest, "error", "invalid user_code", incommingData)
+		apiResponse(c, http.StatusBadRequest, "error", "invalid user_code", input)
 		return
 	}
 
-	err = app.models.Users.Update(incommingData)
+	err = app.repository.Users.Update(input)
 	if err != nil {
 		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
 		return
 	}
 
-	apiResponse(c, http.StatusOK, "success", "user updated", incommingData)
+	apiResponse(c, http.StatusOK, "success", "user updated", input)
 }
 
 func (app *application) deleteUser(c *gin.Context) {
@@ -141,21 +141,19 @@ func (app *application) deleteUser(c *gin.Context) {
 }
 
 func (app *application) activateUser(c *gin.Context) {
-	var input struct {
-		TokenPlaintext string `json:"token"`
-	}
+	var input dtos.ActivateTokenDTO
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
 		return
 	}
 
-	if err := data.ValidateTokenPlaintext(input.TokenPlaintext); err != nil {
+	if err := data.ValidateTokenPlaintext(input.Token); err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
 		return
 	}
 
-	user, err := app.models.Users.GetForToken(data.ScopeActivation, input.TokenPlaintext)
+	user, err := app.models.Users.GetForToken(data.ScopeActivation, input.Token)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -171,7 +169,7 @@ func (app *application) activateUser(c *gin.Context) {
 		"activated": true,
 	}
 
-	err = app.models.Users.Update(u)
+	err = app.repository.Users.Update(u)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrEditConflict):
@@ -186,12 +184,10 @@ func (app *application) activateUser(c *gin.Context) {
 		return
 	}
 
-	err = app.models.Tokens.DeleteAllForUser(data.ScopeActivation, user.ID)
-	if err != nil {
+	if app.repository.Tokens.DeleteAllForUser(data.ScopeActivation, user.ID); err != nil {
 		apiResponse(c, http.StatusNotFound, "error", err.Error(), nil)
 		return
 	}
 
-	// Send the updated user details to the client in a JSON response.
 	apiResponse(c, http.StatusOK, "success", "user activated", user)
 }

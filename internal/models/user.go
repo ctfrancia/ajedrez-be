@@ -7,6 +7,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var AnonymousUser = &User{}
+
 type password struct {
 	plaintext *string
 	hashed    []byte
@@ -85,31 +87,3 @@ func PasswordMatches(hashed []byte, plaintextPassword string) (bool, error) {
 
 	return true, nil
 }
-
-/*
-func (p *password) Set(plain string) error {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(plain), 12)
-	if err != nil {
-		return err
-	}
-
-	p.plaintext = &plain
-	p.hashed = hashed
-
-	return nil
-}
-
-func (p *password) Matches(plaintextPassword string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword(p.hashed, []byte(plaintextPassword))
-	if err != nil {
-		switch {
-		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
-			return false, nil
-		default:
-			return false, err
-		}
-	}
-
-	return true, nil
-}
-*/
