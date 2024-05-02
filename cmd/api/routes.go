@@ -8,9 +8,9 @@ import (
 func (app *application) routes() *gin.Engine {
 	r := gin.Default()
 
-	r.Use(app.metrics())
-	r.Use(app.enableCORS())
-	r.Use(app.rateLimit())
+	// r.Use(app.metrics())
+	// r.Use(app.enableCORS())
+	// r.Use(app.rateLimit())
 	r.Use(app.authenticate())
 	v1U := r.Group("/v1/user")
 	v1T := r.Group("/v1/tournament")
@@ -22,9 +22,9 @@ func (app *application) routes() *gin.Engine {
 	// User routes
 	// v1U.GET("/all", app.getAllUsers)
 	v1U.POST("/create", app.createNewUser)
-	v1U.GET("/:email", app.getUserByEmail)
+	// v1U.GET("/:email", app.getUserByEmail)
 	v1U.PUT("/update", app.updateUser)
-	v1U.DELETE("/delete/:email", app.deleteUser)
+	// v1U.DELETE("/delete/:email", app.deleteUser)
 	v1U.PUT("/activated", app.activateUser)
 
 	// Password routes

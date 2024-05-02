@@ -2,6 +2,7 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
+	"ctfrancia/ajedrez-be/internal/models"
 	"errors"
 	"expvar"
 	"fmt"
@@ -23,7 +24,7 @@ func (app *application) authenticate() gin.HandlerFunc {
 		authorizationHeader := c.GetHeader("Authorization")
 
 		if authorizationHeader == "" {
-			c.Set("user", data.AnonymousUser)
+			c.Set("user", models.AnonymousUser)
 			c.Next()
 			return
 		}
@@ -41,7 +42,7 @@ func (app *application) authenticate() gin.HandlerFunc {
 			return
 		}
 
-		user, err := app.models.Users.GetForToken(data.ScopeAuthentication, token)
+		user, err := app.repository.Users.GetForToken(data.ScopeAuthentication, token)
 		if err != nil {
 			switch {
 			case errors.Is(err, data.ErrRecordNotFound):

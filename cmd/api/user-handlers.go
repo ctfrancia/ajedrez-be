@@ -153,7 +153,7 @@ func (app *application) activateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := app.models.Users.GetForToken(data.ScopeActivation, input.Token)
+	user, err := app.repository.Users.GetForToken(data.ScopeActivation, input.Token)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -189,5 +189,5 @@ func (app *application) activateUser(c *gin.Context) {
 		return
 	}
 
-	apiResponse(c, http.StatusOK, "success", "user activated", user)
+	apiResponse(c, http.StatusOK, "success", "user activated", nil)
 }

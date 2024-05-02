@@ -5,6 +5,7 @@ import (
 	// "database/sql"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
+	// "gorm.io/gorm"
 )
 
 var AnonymousUser = &User{}
@@ -15,7 +16,7 @@ type password struct {
 }
 
 type User struct {
-	ID                  int64
+	ID                  int64 `gorm:"primaryKey"`
 	IsActive            bool
 	Activated           bool
 	IsVerified          bool
