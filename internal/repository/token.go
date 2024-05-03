@@ -63,5 +63,5 @@ func (r TokensRepository) DeleteAllForUser(scope string, userID int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return r.db.WithContext(ctx).Delete(&models.Token{}, "scope = ? AND user_id = ?", scope, userID).Error
+	return r.db.WithContext(ctx).Delete(&models.Token{}, "scope = $1 AND user_id = $2", scope, userID).Error
 }

@@ -43,3 +43,7 @@ func (app *application) internalServerError(c *gin.Context, message string) {
 func (app *application) badRequestResponse(c *gin.Context, message string, data interface{}) {
 	c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": message, "data": data})
 }
+
+func (app *application) forbiddenResponse(c *gin.Context, message string) {
+	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": message})
+}

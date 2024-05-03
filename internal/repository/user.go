@@ -51,7 +51,7 @@ func (r UserRepository) Update(user map[string]interface{}) error {
 func (r UserRepository) GetForToken(tokenScope, tokenPlainText string) (*models.User, error) {
 	tokenHash := sha256.Sum256([]byte(tokenPlainText))
 	var user models.User
-	sQ := "users.id, users.created_at, users.last_name, users.email, users.password, users.activated, users.version"
+	sQ := "users.id, users.created_at, users.last_name, users.email, users.user_code, users.password, users.activated, users.version"
 	jQ := "INNER JOIN tokens ON users.id = tokens.user_id"
 	wQ := "tokens.hash = $1 AND tokens.scope = $2 AND tokens.expiry > $3"
 

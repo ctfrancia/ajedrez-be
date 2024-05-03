@@ -5,6 +5,7 @@ import (
 	"ctfrancia/ajedrez-be/internal/models"
 	"ctfrancia/ajedrez-be/internal/repository"
 	"ctfrancia/ajedrez-be/pkg/dtos"
+	"fmt"
 	"net/http"
 
 	"log"
@@ -17,7 +18,7 @@ import (
 )
 
 func (app *application) createNewUser(c *gin.Context) {
-	var input dtos.UserCreateRequest
+	var input dtos.UserCreateDTO
 	if err := c.ShouldBindJSON(&input); err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
 		return
@@ -25,7 +26,7 @@ func (app *application) createNewUser(c *gin.Context) {
 	cnu := models.User{
 		FirstName: input.FirstName,
 		LastName:  input.LastName,
-		Email:     &input.Email,
+		Email:     input.Email,
 		Language:  input.Language,
 		UserCode:  uuid.New().String(),
 	}
@@ -33,7 +34,6 @@ func (app *application) createNewUser(c *gin.Context) {
 	// normalize user data before inserting into the database
 	normalizeUser(&cnu)
 
-	// err := cnu.Password.Set(input.Password)
 	hashed, err := models.PasswordSet(input.Password)
 	if err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
@@ -69,8 +69,8 @@ func (app *application) createNewUser(c *gin.Context) {
 			"activationToken": token.Plaintext,
 			"userID":          cnu.ID,
 		}
-		// TODO: the welcome template will be based on users' preferred language
-		err = app.mailer.Send(*cnu.Email, "user_welcome_en.tmpl", data)
+		template := fmt.Sprintf("user_welcome_%s.tmpl", cnu.Language)
+		err = app.mailer.Send(cnu.Email, template, data)
 		if err != nil {
 			log.Fatal(err)
 			// TODO: send error to monitoring service
@@ -78,8 +78,8 @@ func (app *application) createNewUser(c *gin.Context) {
 		}
 	})
 
-	resp := map[string]interface{}{
-		"user_code": cnu.UserCode,
+	resp := dtos.UserCodeDTO{
+		UserCode: cnu.UserCode,
 	}
 	apiResponse(c, http.StatusCreated, "success", "user created", resp)
 }
@@ -98,6 +98,18 @@ func (app *application) getUserByEmail(c *gin.Context) {
 }
 
 func (app *application) updateUser(c *gin.Context) {
+	var input dtos.UserUpdateDTO
+	// var user *data.User
+	if err := c.ShouldBindJSON(&input); err != nil {
+		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
+		return
+	}
+	user := c.MustGet("user").(*models.User)
+	if user.ID != input.ID && user.UserCode != input.UserCode {
+		app.forbiddenResponse(c, "forbidden")
+		// apiResponse(c, http.StatusForbidden, "error", "forbidden", nil)
+		return
+	}
 	/*
 		var input map[string]interface{}
 		jsonData, err := io.ReadAll(c.Request.Body)

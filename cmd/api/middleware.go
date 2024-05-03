@@ -223,7 +223,6 @@ func (app *application) metrics() gin.HandlerFunc {
 		c.Next()
 		totalResponsesSent.Add(1)
 
-		// fmt.Println("status code: ", mw.statusCode)
 		// TODO: THIS IS NOT WORKING!!!! ALWAYS EQUALS 200!!!
 		totalResponsesSentByStatus.Add(strconv.Itoa(mw.statusCode), 1)
 

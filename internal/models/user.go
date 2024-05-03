@@ -1,11 +1,9 @@
 package models
 
 import (
-	"time"
-	// "database/sql"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
-	// "gorm.io/gorm"
+	"time"
 )
 
 var AnonymousUser = &User{}
@@ -27,9 +25,9 @@ type User struct {
 	FirstName           string    `json:"first_name"`
 	LastName            string    `json:"last_name"`
 	Username            string    `json:"username"`
-	Password            []byte    `json:"password"`
+	Password            []byte    `json:"-"`
 	PasswordResetToken  string    `json:"password_reset_token"`
-	Email               *string   `json:"email" gorm:"unique;not null"`
+	Email               string    `json:"email" gorm:"unique;not null"`
 	Avatar              string    `json:"avatar"`
 	DateOfBirth         time.Time `json:"date_of_birth"`
 	AboutMe             string    `json:"about_me"`
