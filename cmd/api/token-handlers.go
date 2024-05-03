@@ -2,24 +2,24 @@ package main
 
 import (
 	"ctfrancia/ajedrez-be/internal/data"
+	"ctfrancia/ajedrez-be/internal/models"
+	"ctfrancia/ajedrez-be/pkg/dtos"
 	"database/sql"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func (app *application) createAuthenticationToken(c *gin.Context) {
-	var input struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+	var input dtos.AuthenticateUserDTO
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
 		return
 	}
 
-	user, err := app.models.Users.GetByEmail(input.Email)
+	user, err := app.repository.Users.GetByEmail(input.Email)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -32,7 +32,7 @@ func (app *application) createAuthenticationToken(c *gin.Context) {
 		}
 	}
 
-	match, err := user.Password.Matches(input.Password)
+	match, err := models.PasswordMatches(user.Password, input.Password) //user.Password.Matches(input.Password)
 	if err != nil {
 		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
 		return
@@ -43,7 +43,7 @@ func (app *application) createAuthenticationToken(c *gin.Context) {
 		return
 	}
 
-	token, err := app.models.Tokens.New(user.ID, 24*time.Hour, data.ScopeAuthentication)
+	token, err := app.repository.Tokens.New(user.ID, 24*time.Hour, data.ScopeAuthentication)
 	if err != nil {
 		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
 		return

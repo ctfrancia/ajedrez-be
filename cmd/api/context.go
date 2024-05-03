@@ -3,8 +3,10 @@ package main
 import (
 	// "context"
 	"ctfrancia/ajedrez-be/internal/data"
-	"github.com/gin-gonic/gin"
+	"ctfrancia/ajedrez-be/internal/models"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Define a custom contextKey type, with the underlying type string.
@@ -22,8 +24,8 @@ func (app *application) contextSetUser(c *gin.Context, user *data.User) *gin.Con
 	return c // ctx
 }
 
-func (app *application) contextGetUser(r *http.Request) *data.User {
-	user, ok := r.Context().Value(userContextKey).(*data.User)
+func (app *application) contextGetUser(r *http.Request) *models.User {
+	user, ok := r.Context().Value(userContextKey).(*models.User)
 	if !ok {
 		panic("missing user value in request context")
 	}

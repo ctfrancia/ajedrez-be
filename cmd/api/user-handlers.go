@@ -7,11 +7,9 @@ import (
 	"ctfrancia/ajedrez-be/pkg/dtos"
 	"net/http"
 
-	"io"
 	"log"
 	"strings"
 
-	"encoding/json"
 	"errors"
 
 	"github.com/gin-gonic/gin"
@@ -100,32 +98,34 @@ func (app *application) getUserByEmail(c *gin.Context) {
 }
 
 func (app *application) updateUser(c *gin.Context) {
-	var input map[string]interface{}
-	jsonData, err := io.ReadAll(c.Request.Body)
-	if err != nil {
-		apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
-		return
-	}
+	/*
+		var input map[string]interface{}
+		jsonData, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			apiResponse(c, http.StatusBadRequest, "error", err.Error(), nil)
+			return
+		}
 
-	json.Unmarshal(jsonData, &input)
-	if _, ok := input["user_code"]; !ok {
-		apiResponse(c, http.StatusBadRequest, "error", "user_code is required", input)
-		return
-	}
+		json.Unmarshal(jsonData, &input)
+		if _, ok := input["user_code"]; !ok {
+			apiResponse(c, http.StatusBadRequest, "error", "user_code is required", input)
+			return
+		}
 
-	_, err = uuid.Parse(input["user_code"].(string))
-	if err != nil {
-		apiResponse(c, http.StatusBadRequest, "error", "invalid user_code", input)
-		return
-	}
+		_, err = uuid.Parse(input["user_code"].(string))
+		if err != nil {
+			apiResponse(c, http.StatusBadRequest, "error", "invalid user_code", input)
+			return
+		}
 
-	err = app.repository.Users.Update(input)
-	if err != nil {
-		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
-		return
-	}
+		err = app.repository.Users.Update(input)
+		if err != nil {
+			apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
+			return
+		}
+	*/
 
-	apiResponse(c, http.StatusOK, "success", "user updated", input)
+	apiResponse(c, http.StatusOK, "success", "user updated", nil)
 }
 
 func (app *application) deleteUser(c *gin.Context) {

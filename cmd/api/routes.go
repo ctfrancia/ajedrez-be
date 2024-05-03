@@ -15,22 +15,24 @@ func (app *application) routes() *gin.Engine {
 	v1U := r.Group("/v1/user")
 	v1T := r.Group("/v1/tournament")
 	v1C := r.Group("/v1/club")
-	v1Tokens := r.Group("/v1/tokens")
+	v1Tokens := r.Group("/v1/token")
 	v1Sys := r.Group("/v1/system")
 	v1Pw := r.Group("/v1/password")
 
 	// User routes
-	// v1U.GET("/all", app.getAllUsers)
-	v1U.POST("/create", app.createNewUser)
 	// v1U.GET("/:email", app.getUserByEmail)
-	v1U.PUT("/update", app.updateUser)
-	// v1U.DELETE("/delete/:email", app.deleteUser)
+	v1U.POST("/create", app.createNewUser)
 	v1U.PUT("/activated", app.activateUser)
+	v1U.PUT("/update", app.requireAuthenticatedUser(), app.updateUser)
+	// v1U.GET("/all", app.getAllUsers)
+	// v1U.PUT("/update", app.updateUser)
+	// v1U.DELETE("/delete/:email", app.deleteUser)
 
 	// Password routes
 	v1Pw.POST("/check", app.pwCheck)
 
 	// Tournament routes
+	v1T.Use(app.requireActivatedUser())
 	v1T.POST("/create", app.createNewTournament)
 	v1T.GET("/by-id/:id", app.getByID)
 	v1T.Use(app.tournamentValidator())
@@ -39,7 +41,7 @@ func (app *application) routes() *gin.Engine {
 
 	// Club routes
 	// TODO: the middleware below is just for POC, it should be removed
-	// v1C.Use(app.requireActivatedUser())
+	v1C.Use(app.requireActivatedUser())
 	v1C.POST("/create", app.createNewClub)
 	v1C.GET("/by-name/:name", app.getClubByName)
 	// v1C.GET("/by-code/:code", app.getClubByCode)

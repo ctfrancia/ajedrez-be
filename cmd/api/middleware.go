@@ -5,7 +5,6 @@ import (
 	"ctfrancia/ajedrez-be/internal/models"
 	"errors"
 	"expvar"
-	"fmt"
 	"net"
 	"net/http"
 	"strconv"
@@ -60,7 +59,7 @@ func (app *application) authenticate() gin.HandlerFunc {
 
 func (app *application) requireAuthenticatedUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user := c.MustGet("user").(*data.User)
+		user := c.MustGet("user").(*models.User)
 
 		if user.IsAnonymous() {
 			app.authenticationRequiredResponse(c)
@@ -73,8 +72,7 @@ func (app *application) requireAuthenticatedUser() gin.HandlerFunc {
 
 func (app *application) requireActivatedUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user := c.MustGet("user").(*data.User)
-		fmt.Println(user)
+		user := c.MustGet("user").(*models.User)
 
 		if user.IsAnonymous() {
 			app.authenticationRequiredResponse(c)
@@ -236,7 +234,7 @@ func (app *application) metrics() gin.HandlerFunc {
 
 func (app *application) tournamentValidator() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var input data.Tournament
+		var input models.Tournament
 		if err := c.ShouldBindJSON(&input); err != nil {
 			msg := "invalid field(s) and/or missing required field(s) in the request body"
 			app.badRequestResponse(c, msg, input)
@@ -244,12 +242,42 @@ func (app *application) tournamentValidator() gin.HandlerFunc {
 		}
 
 		if input.Code == nil {
-			fmt.Println("code is required")
 			app.badRequestResponse(c, "code is required", input)
 			return
 		}
 
-		c.Set("input", input)
+		c.Set("tournament", input)
+		c.Next()
+	}
+}
+
+func (app *application) matchValidator() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		/*
+		   var input data.Match
+		   if err := c.ShouldBindJSON(&input); err != nil {
+		       msg := "invalid field(s) and/or missing required field(s) in the request body"
+		       app.badRequestResponse(c, msg, input)
+		       return
+		   }
+
+		   if input.TournamentID == nil {
+		       app.badRequestResponse(c, "tournament_id is required", input)
+		       return
+		   }
+
+		   if input.Team1ID == nil {
+		       app.badRequestResponse(c, "team1_id is required", input)
+		       return
+		   }
+
+		   if input.Team2ID == nil {
+		       app.badRequestResponse(c, "team2_id is required", input)
+		       return
+		   }
+
+		   c.Set("input", input)
+		*/
 		c.Next()
 	}
 }
