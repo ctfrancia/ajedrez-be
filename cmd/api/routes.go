@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/gin-contrib/expvar"
+	// "github.com/gin-contrib/expvar"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,11 +13,11 @@ func (app *application) routes() *gin.Engine {
 	// r.Use(app.rateLimit())
 	r.Use(app.authenticate())
 	v1U := r.Group("/v1/user")
-	v1T := r.Group("/v1/tournament")
-	v1C := r.Group("/v1/club")
+	// v1T := r.Group("/v1/tournament")
+	// v1C := r.Group("/v1/club")
 	v1Tokens := r.Group("/v1/token")
-	v1Sys := r.Group("/v1/system")
-	v1Pw := r.Group("/v1/password")
+	// v1Sys := r.Group("/v1/system")
+	// v1Pw := r.Group("/v1/password")
 
 	// User routes
 	// v1U.GET("/:email", app.getUserByEmail)
@@ -29,31 +29,31 @@ func (app *application) routes() *gin.Engine {
 	// v1U.DELETE("/delete/:email", app.deleteUser)
 
 	// Password routes
-	v1Pw.POST("/check", app.pwCheck)
+	// v1Pw.POST("/check", app.pwCheck)
 
 	// Tournament routes
-	v1T.Use(app.requireActivatedUser())
-	v1T.POST("/create", app.createNewTournament)
-	v1T.GET("/by-id/:id", app.getByID)
-	v1T.Use(app.tournamentValidator())
-	v1T.PUT("/update", app.updateTournament)
-	v1T.PUT("/add-players", app.addPlayersToTournament)
+	// v1T.Use(app.requireActivatedUser())
+	// v1T.POST("/create", app.createNewTournament)
+	// v1T.GET("/by-id/:id", app.getByID)
+	// v1T.Use(app.tournamentValidator())
+	// v1T.PUT("/update", app.updateTournament)
+	// v1T.PUT("/add-players", app.addPlayersToTournament)
 
 	// Club routes
 	// TODO: the middleware below is just for POC, it should be removed
-	v1C.Use(app.requireActivatedUser())
-	v1C.POST("/create", app.createNewClub)
-	v1C.GET("/by-name/:name", app.getClubByName)
+	// v1C.Use(app.requireActivatedUser())
+	// v1C.POST("/create", app.createNewClub)
+	// v1C.GET("/by-name/:name", app.getClubByName)
 	// v1C.GET("/by-code/:code", app.getClubByCode)
 
 	// Token routes
 	v1Tokens.POST("/authentication", app.createAuthenticationToken)
 
 	// System routes
-	v1Sys.GET("/healthcheck", app.healthcheck)
+	// v1Sys.GET("/healthcheck", app.healthcheck)
 
 	// v1Sys.GET("/version", app.version)
-	v1Sys.GET("/debug/vars", expvar.Handler())
+	// v1Sys.GET("/debug/vars", expvar.Handler())
 
 	return r
 }
