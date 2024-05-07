@@ -23,7 +23,7 @@ func (app *application) routes() *gin.Engine {
 	// v1U.GET("/:email", app.getUserByEmail)
 	v1U.POST("/create", app.createNewUser)
 	v1U.PUT("/activated", app.activateUser)
-	// v1U.PUT("/update", app.requireAuthenticatedUser(), app.updateUser)
+	v1U.PUT("/update", app.requireAuthenticatedUser(), app.updateUser)
 	// v1U.GET("/all", app.getAllUsers)
 	// v1U.PUT("/update", app.updateUser)
 	// v1U.DELETE("/delete/:email", app.deleteUser)

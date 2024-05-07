@@ -4,11 +4,14 @@ import (
 	"context"
 	"crypto/sha256"
 	"ctfrancia/ajedrez-be/internal/models"
+	"ctfrancia/ajedrez-be/pkg/dtos"
+
 	// "database/sql"
 	"errors"
-	"fmt"
-	"gorm.io/gorm"
+	// "fmt"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type UserRepository struct {
@@ -30,12 +33,23 @@ func (r UserRepository) Create(user *models.User) error {
 	return result.Error
 }
 
-func (r UserRepository) Update(user map[string]interface{}) error {
+func (r UserRepository) Update(user dtos.UserUpdateDTO) error {
+	// func (r UserRepository) Update(user map[string]interface{}) error {
+	whereClause := make(map[string]interface{})
+
+	if user.UserCode == "" {
+		whereClause["selector"] = "id"
+		whereClause["value"] = user.ID
+	} else {
+		whereClause["selector"] = "user_code"
+		whereClause["value"] = user.UserCode
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	fmt.Println("user before save", user)
+	// fmt.Printf("user before save: %#v", user)
 
-	result := r.DB.WithContext(ctx).Model(&models.User{}).Where("id", user["id"]).Updates(user)
+	result := r.DB.WithContext(ctx).Model(&models.User{}).Omit("user_code", "id").Where(whereClause["selector"], whereClause["value"]).Updates(user)
 	if result.Error != nil {
 		switch {
 		case errors.Is(result.Error, gorm.ErrRecordNotFound):

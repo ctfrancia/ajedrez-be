@@ -21,12 +21,12 @@ type User struct {
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
 	SoftDeleted         bool      `json:"soft_deleted"`
-	UserCode            string    `json:"user_code"`
-	FirstName           string    `json:"first_name"`
-	LastName            string    `json:"last_name"`
+	UserCode            string    `json:"user_code" gorm:"unique;not null"`
+	FirstName           string    `json:"first_name" gorm:"not null"`
+	LastName            string    `json:"last_name" gorm:"not null"`
 	Username            string    `json:"username"`
-	Password            []byte    `json:"-"`
-	PasswordResetToken  string    `json:"password_reset_token"`
+	Password            []byte    `json:"-" gorm:"not null"`
+	PasswordResetToken  string    `json:"-"`
 	Email               string    `json:"email" gorm:"unique;not null"`
 	Avatar              string    `json:"avatar"`
 	DateOfBirth         time.Time `json:"date_of_birth"`
@@ -60,7 +60,7 @@ type User struct {
 	Province            string    `json:"province"`
 	City                string    `json:"city"`
 	Neighborhood        string    `json:"neighborhood"`
-	Version             int16     `json:"version" gorm:"default:1"`
+	Version             int16     `json:"-" gorm:"default:1;autoIncrement"`
 }
 
 func PasswordSet(plain string) ([]byte, error) {

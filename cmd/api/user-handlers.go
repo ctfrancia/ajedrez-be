@@ -99,7 +99,6 @@ func (app *application) getUserByEmail(c *gin.Context) {
 
 func (app *application) updateUser(c *gin.Context) {
 	var input dtos.UserUpdateDTO
-	// var user *data.User
 	if err := c.ShouldBindJSON(&input); err != nil {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
 		return
@@ -107,7 +106,12 @@ func (app *application) updateUser(c *gin.Context) {
 	user := c.MustGet("user").(*models.User)
 	if user.ID != input.ID && user.UserCode != input.UserCode {
 		app.forbiddenResponse(c, "forbidden")
-		// apiResponse(c, http.StatusForbidden, "error", "forbidden", nil)
+		return
+	}
+
+	err := app.repository.Users.Update(input)
+	if err != nil {
+		apiResponse(c, http.StatusInternalServerError, "error", err.Error(), nil)
 		return
 	}
 	/*
@@ -137,7 +141,7 @@ func (app *application) updateUser(c *gin.Context) {
 		}
 	*/
 
-	apiResponse(c, http.StatusOK, "success", "user updated", nil)
+	apiResponse(c, http.StatusOK, "success", "user updated", input)
 }
 
 func (app *application) deleteUser(c *gin.Context) {
@@ -176,9 +180,15 @@ func (app *application) activateUser(c *gin.Context) {
 		return
 	}
 
-	u := map[string]interface{}{
-		"id":        user.ID,
-		"activated": true,
+	/*
+		u := map[string]interface{}{
+			"id":        user.ID,
+			"activated": true,
+		}
+	*/
+	u := dtos.UserUpdateDTO{
+		ID:        user.ID,
+		Activated: true,
 	}
 
 	err = app.repository.Users.Update(u)
