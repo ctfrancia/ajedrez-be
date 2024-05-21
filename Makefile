@@ -1,15 +1,19 @@
+include .envrc
 .PHONY : run-dev setup-dev help
-.SILENT : run-dev
+.SILENT : run-dev help
 
 # TODO: needs to use these for the run-dev target and make it dynamic based on the flags
 db-dsn := $(if $(db-dsn),$(db-dsn),$(""))
 port := $(if $(port),$(port),"")
 help:
-	@echo "make run-dev <...FLAGS> - Run the application in development mode"
-	@echo "		-db-dsn=<connection-string> - Set the database connection string (optional)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo 'Usage:'
+	# @echo "make run-dev <...FLAGS> - Run the application in development mode"
+	# @echo "		-db-dsn=<connection-string> - Set the database connection string (optional)"
+	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
+	# @awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-setup-dev: ## Setup the development environment
+## Setup the development environment; drop the database, then create the database, user and extensions all over again
+setup-dev: 
 	@echo "====REVERTING TO CLEAN STATE===="
 	@echo "---Dropping database---"
 	psql postgres -c "DROP DATABASE IF EXISTS my_chess_website"
@@ -56,7 +60,8 @@ setup-dev: ## Setup the development environment
 	# go run ./cmd/seeds/...
 	@echo "====================="
 
-run-dev: ## Run the application in development mode
+## Run the application in development mode
+run-dev:
 	# db-dsn = $(if $(db-dsn),$(db-dsn),$(""))
 	# port = $(if $(port),$(port),"")
 	@echo "Running in development mode"
