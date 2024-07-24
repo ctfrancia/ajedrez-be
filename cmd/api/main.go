@@ -6,6 +6,7 @@ import (
 	"ctfrancia/ajedrez-be/internal/mailer"
 	"ctfrancia/ajedrez-be/internal/models"
 	"ctfrancia/ajedrez-be/internal/repository"
+	"ctfrancia/ajedrez-be/internal/vcs"
 
 	// "database/sql"
 	// "expvar"
@@ -59,7 +60,9 @@ type application struct {
 	wg         sync.WaitGroup
 }
 
-const version = "1.0.0"
+var (
+	version = vcs.Version()
+)
 
 func main() {
 	var cfg config
