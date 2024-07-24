@@ -1,19 +1,28 @@
 include .envrc
-.PHONY : run-dev setup-dev help
+
+# ==================================================================================== #
+# HELPERS
+# ==================================================================================== #
+.PHONY: run-dev setup-dev help audit vendor confirm build/api
 .SILENT : run-dev help
 
-# TODO: needs to use these for the run-dev target and make it dynamic based on the flags
-db-dsn := $(if $(db-dsn),$(db-dsn),$(""))
-port := $(if $(port),$(port),"")
+## help: Show this help message
 help:
 	@echo 'Usage:'
-	# @echo "make run-dev <...FLAGS> - Run the application in development mode"
-	# @echo "		-db-dsn=<connection-string> - Set the database connection string (optional)"
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
-	# @awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-## Setup the development environment; drop the database, then create the database, user and extensions all over again
-setup-dev: 
+
+confirm:
+	@read -p "Are you sure? [y/N] " response; \
+	if [ "$$response" != "y" ]; then \
+		echo "Exiting..."; \
+		exit 1; \
+	fi
+# ==================================================================================== #
+# DEVELOPMENT
+# ==================================================================================== #
+## setup-dev: prepare the development environment
+setup-dev: confirm
 	@echo "====REVERTING TO CLEAN STATE===="
 	@echo "---Dropping database---"
 	psql postgres -c "DROP DATABASE IF EXISTS my_chess_website"
@@ -60,10 +69,8 @@ setup-dev:
 	# go run ./cmd/seeds/...
 	@echo "====================="
 
-## Run the application in development mode
+## run-dev: run the application in development mode
 run-dev:
-	# db-dsn = $(if $(db-dsn),$(db-dsn),$(""))
-	# port = $(if $(port),$(port),"")
 	@echo "Running in development mode"
 	if [ -z "$(db-dsn)" ]; then \
 		echo "DB DSN is not set, using default local connection string"; \
@@ -72,3 +79,34 @@ run-dev:
 		echo "DB DSN: $(db-dsn)"; \
 		go run ./cmd/api/... -db-dsn=$(db-dsn); \
 		fi
+# ==================================================================================== #
+# QUALITY CONTROL
+# ==================================================================================== #
+
+## audit: tidy dependencies and format, vet and test all code
+audit: vendor
+	@echo 'Formatting code...'
+	go fmt ./...
+	@echo 'Vetting code...'
+	go vet ./...
+	staticcheck ./...
+	@echo 'Running tests...'
+	go test -race -vet=off ./...
+
+## vendor: tidy dependencies and vendor them
+vendor:
+	@echo 'Tidying and verifying module dependencies...'
+	go mod tidy
+	go mod verify
+	@echo 'Vendoring dependencies...'
+	go mod vendor
+
+# ==================================================================================== #
+# BUILD
+# ==================================================================================== #
+
+## build/api: build the cmd/api application
+build/api:
+	@echo 'Building cmd/api...'
+	go build -ldflags='-s -w' -o=./bin/api ./cmd/api
+	GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o=./bin/linux_amd64/api ./cmd/api
