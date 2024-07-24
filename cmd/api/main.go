@@ -6,10 +6,12 @@ import (
 	"ctfrancia/ajedrez-be/internal/mailer"
 	"ctfrancia/ajedrez-be/internal/models"
 	"ctfrancia/ajedrez-be/internal/repository"
+	"ctfrancia/ajedrez-be/internal/vcs"
 
 	// "database/sql"
 	// "expvar"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -58,7 +60,9 @@ type application struct {
 	wg         sync.WaitGroup
 }
 
-const version = "1.0.0"
+var (
+	version = vcs.Version()
+)
 
 func main() {
 	var cfg config
@@ -80,7 +84,13 @@ func main() {
 		cfg.cors.trustedOrigins = strings.Fields(val)
 		return nil
 	})
+	displayVersion := flag.Bool("version", false, "Display version and exit")
 	flag.Parse()
+
+	if *displayVersion {
+		fmt.Printf("Version:\t%s\n", version)
+		os.Exit(0)
+	}
 
 	// logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	/*
