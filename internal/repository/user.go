@@ -6,9 +6,7 @@ import (
 	"ctfrancia/ajedrez-be/internal/models"
 	"ctfrancia/ajedrez-be/pkg/dtos"
 
-	// "database/sql"
 	"errors"
-	// "fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -47,7 +45,6 @@ func (r UserRepository) Update(user dtos.UserUpdateDTO) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	// fmt.Printf("user before save: %#v", user)
 
 	result := r.DB.WithContext(ctx).Model(&models.User{}).Omit("user_code", "id").Where(whereClause["selector"], whereClause["value"]).Updates(user)
 	if result.Error != nil {
