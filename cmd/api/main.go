@@ -1,21 +1,16 @@
 package main
 
 import (
-	// "context"
 	"ctfrancia/ajedrez-be/internal/data"
 	"ctfrancia/ajedrez-be/internal/mailer"
 	"ctfrancia/ajedrez-be/internal/models"
 	"ctfrancia/ajedrez-be/internal/repository"
 	"ctfrancia/ajedrez-be/internal/vcs"
-
-	// "database/sql"
-	// "expvar"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 
-	// "runtime"
 	"strings"
 	"sync"
 	"time"
@@ -92,32 +87,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	// logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	/*
-		db, err := openDB(cfg)
-		if err != nil {
-			// logger.Error("cannot connect to database", "error", err)
-			os.Exit(1)
-		}
-
-		defer db.Close()
-
-		expvar.NewString("version").Set(version)
-		// Publish the number of active goroutines.
-		expvar.Publish("goroutines", expvar.Func(func() any {
-			return runtime.NumGoroutine()
-		}))
-
-		// Publish the database connection pool statistics.
-		expvar.Publish("database", expvar.Func(func() any {
-			return db.Stats()
-		}))
-
-		// Publish the current Unix timestamp.
-		expvar.Publish("timestamp", expvar.Func(func() any {
-			return time.Now().Unix()
-		}))
-	*/
 	db, err := openDB(cfg)
 	if err != nil {
 		panic(err)
@@ -148,37 +117,3 @@ func openDB(cfg config) (*gorm.DB, error) {
 	db.AutoMigrate(&models.User{}, &models.Token{}, &models.Tournament{}, &models.Team{})
 	return db, nil
 }
-
-/*
-func openDB(cfg config) (*sql.DB, error) {
-	// Open database
-	db, err := sql.Open("postgres", cfg.db.dsn)
-	if err != nil {
-		return nil, err
-	}
-	// Set the maximum number of open (in-use + idle) connections in the pool. Note that
-	// passing a value less than or equal to 0 will mean there is no limit.
-	db.SetMaxOpenConns(cfg.db.maxOpenConns)
-
-	// Set the maximum number of idle connections in the pool. Again, passing a value
-	// less than or equal to 0 will mean there is no limit.
-	db.SetMaxIdleConns(cfg.db.maxIdleConns)
-
-	// Set the maximum idle timeout for connections in the pool. Passing a duration less
-	// than or equal to 0 will mean that connections are not closed due to their idle time.
-	db.SetConnMaxIdleTime(cfg.db.maxIdleTime)
-
-	// Create a context with a 5-second timeout deadline.
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	err = db.PingContext(ctx)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	// Return the sql.DB connection pool.
-	return db, nil
-}
-*/
