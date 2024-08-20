@@ -69,6 +69,7 @@ func (app *application) createNewUser(c *gin.Context) {
 			"activationToken": token.Plaintext,
 			"userID":          cnu.ID,
 		}
+
 		template := fmt.Sprintf("user_welcome_%s.tmpl", cnu.Language)
 		err = app.mailer.Send(cnu.Email, template, data)
 		if err != nil {
@@ -81,6 +82,7 @@ func (app *application) createNewUser(c *gin.Context) {
 	resp := dtos.UserCodeDTO{
 		UserCode: cnu.UserCode,
 	}
+
 	apiResponse(c, http.StatusCreated, "success", "user created", resp)
 }
 
@@ -103,6 +105,8 @@ func (app *application) updateUser(c *gin.Context) {
 		apiResponse(c, http.StatusBadRequest, "error", err.Error(), input)
 		return
 	}
+
+	// Get the user from the context
 	user := c.MustGet("user").(*models.User)
 	if user.ID != input.ID && user.UserCode != input.UserCode {
 		app.forbiddenResponse(c, "forbidden")

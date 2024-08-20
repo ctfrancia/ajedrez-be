@@ -68,9 +68,9 @@ func main() {
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
 	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
 	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
-	flag.StringVar(&cfg.smtp.username, "smtp-username", "7005680924ace2", "SMTP username")
-	flag.StringVar(&cfg.smtp.password, "smtp-password", "f382c81ae48622", "SMTP password")
-	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "MCT <no-reply@mct.es>", "SMTP sender")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", os.Getenv("SMTP_USERNAME"), "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", os.Getenv("SMTP_PASSWORD"), "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "MCT <NO-REPLY@mct.es>", "SMTP sender")
 	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	// IMPORTANT: below should be set to true in production
@@ -85,6 +85,14 @@ func main() {
 	if *displayVersion {
 		fmt.Printf("Version:\t%s\n", version)
 		os.Exit(0)
+	}
+
+	isServerValid, smtpErrs := serverIsValid(cfg)
+	if !isServerValid {
+		for k, v := range smtpErrs {
+			log.Printf("SMTP %s: %s", k, v)
+		}
+		os.Exit(1)
 	}
 
 	db, err := openDB(cfg)
@@ -108,6 +116,7 @@ func main() {
 
 func openDB(cfg config) (*gorm.DB, error) {
 	dsn := cfg.db.dsn
+	println("DDSN", dsn)
 	// dsn := "host=localhost user=chess_admin password=pa55word dbname=my_chess_website sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
 	if err != nil {

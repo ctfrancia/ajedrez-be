@@ -7,7 +7,7 @@ Gracias por registrarte en My Chess Tournaments!
 
 Para futura referencia, tu número de usuario es {{.userID}}.
 
-Por favor envía una solicitud al endpoint `PUT /v1/user/activated` con el siguiente JSON
+Por favor envía una solicitud al endpoint `/v1/user/activated` con el método `PUT` y al siguiente JSON
 body para activar tu cuenta:
 
 {"token": "{{.activationToken}}"}
@@ -22,18 +22,17 @@ El equopo de My Chess Tournaments
 {{define "htmlBody"}}
 <!doctype html>
 <html>
-
 <head>
     <meta name="viewport" content="width=device-width" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 
 <body>
-    <p>Hi,</p>
+    <p>Hola,</p>
     <p> Gracias por registrarte en My Chess Tournaments!</p>
     <p>Para futura referencia, tu número de usuario es {{.userID}}.</p>
-    <p>Por favor envía una solicitud al endpoint `PUT /v1/user/activated` con el siguiente JSON
-    body para activar tu cuenta:</p>
+    <p>Por favor envía una solicitud al endpoint `/v1/user/activated` con el método `PUT` y al siguiente JSON
+body para activar tu cuenta:</p>
     <pre><code>
     {"token": "{{.activationToken}}"}
     </code></pre>

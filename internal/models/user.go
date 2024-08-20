@@ -60,7 +60,7 @@ type User struct {
 	Province            string    `json:"province"`
 	City                string    `json:"city"`
 	Neighborhood        string    `json:"neighborhood"`
-	Version             int16     `json:"-" gorm:"default:1;autoIncrement"`
+	Version             int16     `json:"-" gorm:"autoIncrement"`
 }
 
 func PasswordSet(plain string) ([]byte, error) {
