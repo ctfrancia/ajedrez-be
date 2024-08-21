@@ -75,10 +75,10 @@ run-dev:
 	if [ -z "$(db-dsn)" ]; then \
 		echo "DB DSN is not set, using default local connection string"; \
 		go run ./cmd/api/ -limiter-enabled=false; \
-		else \
+	else \
 		echo "DB DSN: $(db-dsn)"; \
-		go run ./cmd/api/... -db-dsn=$(db-dsn); \
-		fi
+		go run ./cmd/api/ -limiter-enabled=false -db-dsn=$(db-dsn); \
+	fi
 # ==================================================================================== #
 # QUALITY CONTROL
 # ==================================================================================== #
